@@ -50,7 +50,7 @@
     "start": "node src/server.mjs",
     "build": "node scripts/build.mjs",
     "catalog": "node scripts/create-lut-catalog.mjs",
-    "assets:prepare": "python3 scripts/prepare-assets.py",
+    "assets:prepare": "node scripts/prepare-assets.mjs",
     "environment:check": "node scripts/setup-environment.mjs",
     "environment:install": "node scripts/setup-environment.mjs --install"
   },

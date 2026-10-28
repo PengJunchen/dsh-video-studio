@@ -81,6 +81,13 @@ are in `licenses/`. The plugin's original source remains MIT.
 Python component notices from the pinned upstream release also accompany every
 plugin package in `runtime/notices/python/`.
 
+Before starting the **Build fixed runtimes** workflow, maintainers push the
+runtime ID as a source tag at the commit being built. Publishing verifies that
+tag. If only publishing fails, the workflow's `existing_run_id` input reuses
+the four completed artifacts instead of compiling them again. Application
+releases reuse these versioned runtime archives and gate publication on each
+complete platform package passing its relocated processing check.
+
 ## Build the full installation package
 
 From pinned published runtime resources:
