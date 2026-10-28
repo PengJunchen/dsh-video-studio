@@ -66,7 +66,7 @@ python scripts/package-runtime.py --platform darwin-arm64
 ```
 
 Substitute `darwin-x64`, `linux-x64` or `win32-x64` on those systems. macOS/Linux
-build FFmpeg plus static x264, 10-bit x265 and zimg from locked source archives,
+build FFmpeg plus static x264, 10-bit x265, zimg and zlib from locked source archives,
 with unrelated optional system libraries disabled. Windows uses the pinned BtbN
 GPL shared build, preserves its DLLs/docs/notices, and includes the Microsoft
 redistributable CRT beside Python. The Windows builder requires Visual Studio
@@ -74,7 +74,7 @@ Build Tools with the x64 redistributable directory; customers do not.
 
 The runtime archive has one top-level platform directory. `package-runtime.py`
 prints and saves its size/SHA-256. The runtime release also includes the exact
-FFmpeg/x264/x265/zimg source archives and build script for macOS/Linux; upstream
+FFmpeg/x264/x265/zimg/zlib source archives and build script for macOS/Linux; upstream
 Windows build sources are recorded in its input manifest. Original upstream
 Python and wheel notices stay in the runtime tree; FFmpeg/component notices
 are in `licenses/`. The plugin's original source remains MIT.

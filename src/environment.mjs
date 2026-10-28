@@ -1,10 +1,10 @@
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { mkdir, stat, readFile, rm, rename, open } from 'node:fs/promises';
+import { mkdir, stat, rm, rename, open } from 'node:fs/promises';
 import { createReadStream } from 'node:fs';
 import { createHash, randomUUID } from 'node:crypto';
 import { join, delimiter } from 'node:path';
-import { atomicJSON, readJSON } from './storage.mjs';
+import { readJSON } from './storage.mjs';
 
 const execute = promisify(execFile);
 const platform = `${process.platform}-${process.arch}`;
@@ -103,9 +103,9 @@ export function createEnvironmentManager({ root, dataDir, python, visionPython }
     }
     const manifest = await lock();
     const artifact = manifest.platforms?.[platform];
-    return { ...await cached.value, installation, canInstall: Boolean(artifact) && !python && !closed,
+    return { ...await cached.value, installation, canInstall: Boolean(artifact) && !python && !visionPython && !closed,
       downloadBytes: artifact?.bytes ?? null, runtimeId: manifest.id,
-      installReason: python ? '当前使用配置中指定的 Python。移除 python 配置可启用插件固定环境。'
+      installReason: python || visionPython ? '当前使用手动指定的 Python。移除 python / assets.vision_python 配置可启用插件固定环境。'
         : !artifact ? '此平台暂未提供固定环境包，可按 README 配置系统环境。' : null };
   }
 
@@ -113,7 +113,7 @@ export function createEnvironmentManager({ root, dataDir, python, visionPython }
     if (closed) throw new Error('视频服务已关闭。');
     if (installPromise) return status();
     const manifest = await lock(), artifact = manifest.platforms?.[platform];
-    if (!artifact || python) throw new Error((await status()).installReason || '此平台暂不支持自动配置。');
+    if (!artifact || python || visionPython) throw new Error((await status()).installReason || '此平台暂不支持自动配置。');
     if (!/^https:\/\/github\.com\/PengJunchen\/dsh-video-studio\/releases\/download\//.test(artifact.url)
         || !/^[a-f0-9]{64}$/.test(artifact.sha256) || !Number.isSafeInteger(artifact.bytes) || artifact.bytes <= 0) throw new Error('固定环境下载清单无效。');
     await mkdir(home, { recursive: true });

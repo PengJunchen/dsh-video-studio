@@ -47,15 +47,15 @@ See [fixed runtime construction and platform limits](runtime/README.md).
 
 ## Install
 
-Download the complete `.tgz` from
+Download the `.tgz` with the matching platform suffix from
 [GitHub Releases](https://github.com/PengJunchen/dsh-video-studio/releases)
 and select it in Harness's plugin installer. This is the prepared distribution;
 GitHub's automatically generated source ZIP/tarball does not contain LUT payloads.
 
-The CLI can install the release URL directly:
+For an Apple Silicon Mac, the CLI can install the complete release directly:
 
 ```text
-dsh plugin --profile desktop add 'https://github.com/PengJunchen/dsh-video-studio/releases/download/v0.1.0-beta.3/dsh-video-studio-0.1.0-beta.3.tgz'
+dsh plugin --profile desktop add 'https://github.com/PengJunchen/dsh-video-studio/releases/download/v0.1.0-beta.3/dsh-video-studio-0.1.0-beta.3-darwin-arm64.tgz'
 ```
 
 Or install a downloaded package, selecting the profile you actually use:
