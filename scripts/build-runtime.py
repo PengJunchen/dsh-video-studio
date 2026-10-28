@@ -48,7 +48,7 @@ def main():
     actual = {'Darwin': 'darwin', 'Linux': 'linux', 'Windows': 'win32'}[platform.system()] + '-' + {'aarch64': 'arm64', 'arm64': 'arm64', 'x86_64': 'x64', 'AMD64': 'x64'}[platform.machine()]
     if actual != args.platform: raise ValueError(f'Build on {args.platform}, current machine is {actual}')
     lock_path = ROOT / 'runtime' / f'inputs-{args.platform}.json'
-    lock = json.loads(lock_path.read_text())
+    lock = json.loads(lock_path.read_text(encoding='utf-8'))
     cache = ROOT / 'runtime/.downloads'
     cache.mkdir(exist_ok=True)
 
@@ -72,7 +72,7 @@ def main():
     build.mkdir(parents=True, exist_ok=True)
     output.mkdir()
     log = (build / 'build.log').open('w')
-    env = {**os.environ, 'PYTHONDONTWRITEBYTECODE': '1'}
+    env = {**os.environ, 'PYTHONDONTWRITEBYTECODE': '1', 'PYTHONUTF8': '1', 'PYTHONIOENCODING': 'utf-8'}
 
     def run(command, cwd=build, custom_env=env):
         print('Build: ' + command[0] + ' ' + ' '.join(command[1:3]), flush=True)

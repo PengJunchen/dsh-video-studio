@@ -20,7 +20,7 @@ def main() -> None:
     parser.add_argument('--output', required=True, type=Path, help='Destination .tar.gz resource archive')
     args = parser.parse_args()
     assets = ROOT / 'assets'
-    manifest = json.loads((assets / 'manifest.json').read_text())
+    manifest = json.loads((assets / 'manifest.json').read_text(encoding='utf-8'))
     members = [(name, (assets / name).read_bytes()) for name in
                ['SOURCES.md', 'catalog.json', 'library.json']]
     for entry in sorted(manifest['payloads'], key=lambda item: item['file']):

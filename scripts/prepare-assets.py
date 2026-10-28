@@ -74,7 +74,7 @@ def main() -> None:
     parser.add_argument('--official-only', action='store_true', help='Fetch original DJI sources instead of the pinned maintainer resource archive')
     args = parser.parse_args()
     asset_root = ROOT / 'assets'
-    manifest = json.loads((asset_root / 'manifest.json').read_text())
+    manifest = json.loads((asset_root / 'manifest.json').read_text(encoding='utf-8'))
     entries = manifest['payloads']
     destination = asset_root / 'luts'
     destination.mkdir(parents=True, exist_ok=True)

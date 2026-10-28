@@ -17,7 +17,7 @@ const hash = async file => {
   return digest.digest('hex');
 };
 const command = async (file, args, env, options = {}) => (await execute(file, args, {
-  env, timeout: 15000, maxBuffer: 4 * 1024 * 1024, windowsHide: true, ...options,
+  env, timeout: 60000, maxBuffer: 4 * 1024 * 1024, windowsHide: true, ...options,
 })).stdout;
 
 /** A relocatable package runtime or a private, versioned installation. No global PATH changes. */
@@ -64,7 +64,9 @@ export function createEnvironmentManager({ root, dataDir, python, visionPython }
     const items = [];
     async function item(id, label, run) {
       try { const version = await run(); items.push({ id, label, ready: true, version }); }
-      catch (error) { items.push({ id, label, ready: false, message: error.code === 'ENOENT' ? '尚未安装或无法找到' : String(error.stderr || error.message).trim().slice(-480) }); }
+      catch (error) { items.push({ id, label, ready: false, message: error.code === 'ENOENT' ? '尚未安装或无法找到'
+        : error.killed ? '首次组件检测超时，请重新检查。系统首次加载大型组件可能需要较长时间。'
+          : String(error.stderr || error.message).trim().slice(-480) }); }
     }
     await Promise.all([
       item('python', 'Python', async () => {
@@ -102,10 +104,13 @@ export function createEnvironmentManager({ root, dataDir, python, visionPython }
   async function status(refresh = false) {
     if (refresh || !cached || Date.now() - cached.at > 30000) {
       const at = Date.now();
-      cached = { at, value: (async () => {
+      const entry = { at, value: null };
+      entry.value = (async () => {
         const context = await execution();
         return { ...await inspect(context), source: context.source, platform, directory: context.directory ?? null };
-      })() };
+      })();
+      cached = entry;
+      entry.value.then(() => { entry.at = Date.now(); }, () => {});
     }
     const manifest = await lock();
     const artifact = manifest.platforms?.[platform];
