@@ -84,4 +84,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           tag=$(node -p "'v' + require('./package.json').version")
-          gh release create "$tag" release/*.tgz --target "$GITHUB_SHA" --title "DSH Video Studio $tag" --generate-notes --prerelease --repo "$GITHUB_REPOSITORY"
+          if ! gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$tag" --silent; then
+            gh api "repos/$GITHUB_REPOSITORY/git/refs" -f "ref=refs/tags/$tag" -f "sha=$GITHUB_SHA" --silent
+          fi
+          gh release create "$tag" release/*.tgz --verify-tag --title "DSH Video Studio $tag" --generate-notes --prerelease --repo "$GITHUB_REPOSITORY"

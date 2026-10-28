@@ -16,6 +16,22 @@ try {
   const health = await manager.status(true);
   if (health.source !== 'bundled' || !health.ready || !health.visionReady) throw new Error(JSON.stringify(health));
   const execution = await manager.execution();
+  execFileSync(execution.python, ['-c',
+    'import os,sys,cv2; assert os.path.normcase(os.path.realpath(sys.prefix)) == os.path.normcase(os.path.realpath(sys.argv[1])), "Python escaped the package"',
+    join(execution.directory, 'python')], { env: execution.env });
+  if (process.platform === 'win32') execFileSync(execution.python, ['-c', `
+import ctypes, pathlib, sys, cv2
+kernel = ctypes.WinDLL('kernel32', use_last_error=True)
+kernel.GetModuleHandleW.argtypes = [ctypes.c_wchar_p]
+kernel.GetModuleHandleW.restype = ctypes.c_void_p
+kernel.GetModuleFileNameW.argtypes = [ctypes.c_void_p, ctypes.c_wchar_p, ctypes.c_uint32]
+for name in ['msvcp140.dll', 'vcruntime140.dll', 'vcruntime140_1.dll']:
+    handle = kernel.GetModuleHandleW(name)
+    if handle:
+        target = ctypes.create_unicode_buffer(32768)
+        assert kernel.GetModuleFileNameW(handle, target, len(target))
+        assert pathlib.Path(target.value).resolve().is_relative_to(pathlib.Path(sys.prefix).resolve()), name + ' loaded from the system'
+`], { env: execution.env });
   process.env.PATH = [join(execution.directory, 'bin'), join(execution.directory, process.platform === 'win32' ? 'python' : 'python/bin')].join(process.platform === 'win32' ? ';' : ':');
   delete process.env.PYTHONHOME; delete process.env.PYTHONPATH; delete process.env.HVP_PYTHON;
   if (process.platform === 'darwin') {

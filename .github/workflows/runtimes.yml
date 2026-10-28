@@ -1,10 +1,17 @@
 name: Build fixed runtimes
 on:
   workflow_dispatch:
+    inputs:
+      existing_run_id:
+        description: Optional successful build run to publish without rebuilding
+        type: string
+        default: ''
 permissions:
   contents: write
+  actions: read
 jobs:
   build:
+    if: inputs.existing_run_id == ''
     strategy:
       fail-fast: false
       matrix:
@@ -45,11 +52,14 @@ jobs:
           retention-days: 3
   publish:
     needs: build
+    if: always() && (needs.build.result == 'success' || (needs.build.result == 'skipped' && inputs.existing_run_id != ''))
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v7.0.1
       - uses: actions/download-artifact@v8.0.2
         with:
+          run-id: ${{ inputs.existing_run_id || github.run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           pattern: runtime-*
           merge-multiple: true
           path: release
@@ -58,4 +68,4 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           id=$(node -p "require('./runtime/manifest.json').id")
-          gh release create "$id" release/* --target "$GITHUB_SHA" --title "Video Studio fixed runtimes · $id" --notes "Fixed per-platform Python, FFmpeg and vision dependencies. See runtime/README.md and the included input manifests for build sources and platform requirements." --prerelease
+          gh release create "$id" release/* --verify-tag --title "Video Studio fixed runtimes · $id" --notes "Fixed per-platform Python, FFmpeg and vision dependencies. See runtime/README.md and the included input manifests for build sources and platform requirements." --prerelease
