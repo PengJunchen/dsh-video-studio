@@ -9,7 +9,8 @@ import { execFileSync } from 'node:child_process';
 const directory = await mkdtemp(join(tmpdir(), 'dsh-package-'));
 let runtime;
 try {
-  execFileSync('tar', ['-xzf', resolve(process.argv[2]), '-C', directory]);
+  const tar = process.platform === 'win32' ? join(process.env.SystemRoot || 'C:\\Windows', 'System32/tar.exe') : 'tar';
+  execFileSync(tar, ['-xzf', resolve(process.argv[2]), '-C', directory]);
   const root = join(directory, 'package');
   const { createEnvironmentManager } = await import(pathToFileURL(join(root, 'src/environment.mjs')));
   const manager = createEnvironmentManager({ root, dataDir: join(directory, 'data') });

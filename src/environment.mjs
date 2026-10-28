@@ -10,6 +10,7 @@ const execute = promisify(execFile);
 const platform = `${process.platform}-${process.arch}`;
 const pythonRelative = process.platform === 'win32' ? 'python/python.exe' : 'python/bin/python3';
 const pythonBin = process.platform === 'win32' ? 'python' : 'python/bin';
+const systemTool = name => process.platform === 'win32' ? join(process.env.SystemRoot || 'C:\\Windows', 'System32', `${name}.exe`) : name;
 const exists = file => stat(file).then(value => value.isFile()).catch(() => false);
 const hash = async file => {
   const digest = createHash('sha256');
@@ -147,14 +148,14 @@ export function createEnvironmentManager({ root, dataDir, python, visionPython }
       try {
         await mkdir(stage, { recursive: true });
         const archive = join(stage, 'runtime.tar.gz');
-        await command('curl', ['--fail', '--location', '--silent', '--show-error', '--retry', '2',
+        await command(systemTool('curl'), ['--fail', '--location', '--silent', '--show-error', '--retry', '2',
           '--proto', '=https', '--max-time', '900', '--max-filesize', String(1024 ** 3), '--output', archive, artifact.url],
         process.env, { timeout: 930000, signal });
         if ((await stat(archive)).size !== artifact.bytes || await hash(archive) !== artifact.sha256) throw new Error('运行环境下载不完整或散列不符，请重试。');
         installation = { state: 'extracting', message: '正在解压独立环境…' };
         const unpacked = join(stage, 'unpacked');
         await mkdir(unpacked);
-        await command('tar', ['-xzf', archive, '-C', unpacked], process.env, { timeout: 120000, signal });
+        await command(systemTool('tar'), ['-xzf', archive, '-C', unpacked], process.env, { timeout: 120000, signal });
         const payload = join(unpacked, platform);
         const info = await readJSON(join(payload, 'runtime.json'), null);
         if (info?.id !== manifest.id || info.platform !== platform || info.schema !== 1) throw new Error('环境包与当前插件不匹配。');
