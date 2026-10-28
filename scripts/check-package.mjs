@@ -27,7 +27,7 @@ try {
   const { createMediaRuntime } = await import(pathToFileURL(join(root, 'src/runtime.mjs')));
   runtime = await createMediaRuntime({ dataDir: join(directory, 'data'), allowedRoots: [directory], allowUserExportGrants: true });
   for (const id of ['lut-batch', 'tone', 'skin', 'local-color', 'finish']) runtime.registerFeature({ id, version: 1 }, 'release');
-  const source = join(directory, 'sample.mp4');
+  const source = join(directory, '素材 sample.mp4');
   execFileSync(join(execution.directory, 'bin', process.platform === 'win32' ? 'ffmpeg.exe' : 'ffmpeg'),
     ['-v', 'error', '-f', 'lavfi', '-i', 'testsrc2=size=128x72:rate=6', '-t', '1', '-c:v', 'libx264', '-pix_fmt', 'yuv420p',
       '-color_primaries', 'bt709', '-color_trc', 'bt709', '-colorspace', 'bt709', source]);
@@ -36,7 +36,8 @@ try {
   if (!assetId) throw new Error('Scan produced no asset');
   let view = await runtime.select({ assetId });
   await runtime.updateDraft({ assetId, revision: view.draft.revision,
-    changes: { modeOverride: 'Rec.709', lutEnabled: false, shadows: 0.2, highlights: -0.15, denoise: { amount: 0.1 } } });
+    changes: { cameraOverride: 'pocket4p', modeOverride: 'D-Log2', lutEnabled: true, lutLook: 'vivid', lutSize: 65,
+      shadows: 0.2, highlights: -0.15, denoise: { amount: 0.1 } } });
   view = await runtime.state();
   async function finish(submission) {
     let job = submission.job;

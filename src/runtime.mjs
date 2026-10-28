@@ -163,6 +163,7 @@ export async function createMediaRuntime(config = {}) {
     const task = { abort: () => {}, promise: null };
     const promise = new Promise((resolveResult, reject) => {
       const child = spawn(execution.python, [workerPath], { env: execution.env, stdio: ['pipe', 'pipe', 'pipe'], detached: true });
+      child.stdout.setEncoding('utf8'); child.stderr.setEncoding('utf8');
       let stdout = '', stderr = '', spawnError, aborted;
       let forceTimer;
       const signalGroup = kind => {
@@ -186,7 +187,7 @@ export async function createMediaRuntime(config = {}) {
       child.once('spawn', () => { if (aborted) signalGroup('SIGTERM'); });
       child.once('error', error => { spawnError = error; });
       child.stdout.on('data', chunk => {
-        if (Buffer.byteLength(stdout) + chunk.byteLength > 8 * 1024 * 1024) {
+        if (Buffer.byteLength(stdout) + Buffer.byteLength(chunk) > 8 * 1024 * 1024) {
           task.abort(new MediaError('WORKER_OUTPUT_TOO_LARGE', '视频服务响应过大。', 502));
           return;
         }

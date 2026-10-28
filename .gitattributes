@@ -1,2 +1,5 @@
 * text=auto eol=lf
-*.svg text
+runtime/notices/** -text
+*.cube -text
+*.tgz -text
+*.tar.gz -text

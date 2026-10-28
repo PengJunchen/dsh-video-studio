@@ -46,6 +46,7 @@ try {
   const request = await readFile(join(runDir, 'request.json'));
   const raw = await new Promise((resolveResult, reject) => {
     child = spawn(python, [workerPath], { detached: true, stdio: ['pipe','pipe','pipe'] });
+    child.stdout.setEncoding('utf8'); child.stderr.setEncoding('utf8');
     let output = '', diagnostic = '', outputBytes = 0;
     let stopping = false, settled = false, pollBusy = false, pollError, outputError, spawnError;
     let poll = Promise.resolve();
@@ -77,7 +78,7 @@ try {
     timer = setInterval(checkCancel, 200);
     child.stdout.on('data', chunk => {
       if (outputError) return;
-      outputBytes += chunk.byteLength;
+      outputBytes += Buffer.byteLength(chunk);
       if (outputBytes > 8 * 1024 * 1024) { outputError = new Error('Worker output exceeds limit'); stop(); return; }
       output += chunk;
     });

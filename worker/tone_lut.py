@@ -11,6 +11,7 @@ import json
 import math
 from pathlib import Path
 from typing import Any
+from filter_paths import filter_file
 
 
 LUT_SIZE = 65
@@ -123,14 +124,10 @@ def _tone_gain(luminance: float, shadows: float, highlights: float,
 
 def tone_lut_filter(info: dict[str, Any], enable: str | None = None) -> str:
     """Keep the dark-dense shaper and its inverse-sampled 3D LUT together."""
-    import re
     paths = [info.get("shaper_path"), info.get("path")]
-    if any(path is not None and (not isinstance(path, str) or re.search(r"[':,;\[\]\\]", path))
-           for path in paths):
-        raise ValueError("LUT path contains unsupported filter characters")
     timeline = f":enable='{enable}'" if enable is not None else ""
-    return (f"lut1d=file='{paths[0]}':interp=linear{timeline}," if paths[0] else "") + \
-           f"lut3d=file='{paths[1]}':interp=tetrahedral{timeline}"
+    return (f"lut1d=file={filter_file(paths[0])}:interp=linear{timeline}," if paths[0] else "") + \
+           f"lut3d=file={filter_file(paths[1])}:interp=tetrahedral{timeline}"
 
 
 def tone_rgb(red: float, green: float, blue: float,

@@ -42,7 +42,7 @@ export function createEnvironmentManager({ root, dataDir, python, visionPython }
     }
     const managed = Boolean(directory);
     const executable = python || (managed ? join(directory, pythonRelative) : process.platform === 'win32' ? 'python' : 'python3');
-    const env = { ...process.env, PYTHONDONTWRITEBYTECODE: '1' };
+    const env = { ...process.env, PYTHONDONTWRITEBYTECODE: '1', PYTHONUTF8: '1', PYTHONIOENCODING: 'utf-8' };
     const prefixes = managed ? [join(directory, 'bin'), join(directory, pythonBin)]
       : process.platform === 'darwin' ? ['/opt/homebrew/bin', '/usr/local/bin'] : [];
     env.PATH = managed ? prefixes.join(delimiter) : [...prefixes, env.PATH || ''].join(delimiter);
@@ -109,15 +109,19 @@ export function createEnvironmentManager({ root, dataDir, python, visionPython }
     }
     const manifest = await lock();
     const artifact = manifest.platforms?.[platform];
-    return { ...await cached.value, installation, canInstall: Boolean(artifact) && !python && !visionPython && !closed,
+    const details = await cached.value;
+    const mismatch = details.items.find(item => item.id === 'platform');
+    return { ...details, installation, canInstall: Boolean(artifact) && !python && !visionPython && !closed && !mismatch,
       downloadBytes: artifact?.bytes ?? null, runtimeId: manifest.id,
-      installReason: python || visionPython ? '当前使用手动指定的 Python。移除 python / assets.vision_python 配置可启用插件固定环境。'
+      installReason: mismatch ? mismatch.message : python || visionPython ? '当前使用手动指定的 Python。移除 python / assets.vision_python 配置可启用插件固定环境。'
         : !artifact ? '此平台暂未提供固定环境包，可按 README 配置系统环境。' : null };
   }
 
   async function install() {
     if (closed) throw new Error('视频服务已关闭。');
     if (installPromise) return status();
+    const current = await status();
+    if (!current.canInstall) throw new Error(current.installReason || '此平台暂不支持自动配置。');
     const manifest = await lock(), artifact = manifest.platforms?.[platform];
     if (!artifact || python || visionPython) throw new Error((await status()).installReason || '此平台暂不支持自动配置。');
     if (!/^https:\/\/github\.com\/PengJunchen\/dsh-video-studio\/releases\/download\//.test(artifact.url)
@@ -152,7 +156,7 @@ export function createEnvironmentManager({ root, dataDir, python, visionPython }
         installation = { state: 'checking', message: '正在检查编解码与人物处理能力…' };
         const temporary = { python: join(payload, pythonRelative), env: { ...process.env,
           PATH: [join(payload, 'bin'), join(payload, pythonBin)].join(delimiter),
-          PYTHONNOUSERSITE: '1', PYTHONDONTWRITEBYTECODE: '1' } };
+          PYTHONNOUSERSITE: '1', PYTHONDONTWRITEBYTECODE: '1', PYTHONUTF8: '1', PYTHONIOENCODING: 'utf-8' } };
         delete temporary.env.PYTHONHOME; delete temporary.env.PYTHONPATH;
         const result = await inspect(temporary);
         if (!result.ready || !result.visionReady) throw new Error(result.items.filter(item => !item.ready).map(item => `${item.label}: ${item.message}`).join('；'));

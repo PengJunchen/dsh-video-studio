@@ -34,6 +34,7 @@ from tone_segments import analyze_tone_intervals, create_tone_plan, tone_plan_fi
 from video_denoise import normalize_denoise, denoise_filter, denoise_metadata, noise_metrics
 from export_validation import decoded_video_facts, ExportValidationError
 from preview_color import display_png_frame_filter, display_png_options
+from filter_paths import filter_file
 
 
 VIDEO_EXTENSIONS = {".mp4", ".mov", ".m4v", ".mkv"}
@@ -815,10 +816,10 @@ def local_color_filter(hue: float, width: float, amount: float, hue_shift: float
 
 
 def lut_filter(path: str) -> str:
-    # Reject filtergraph punctuation even when a path came from trusted runtime.
-    if re.search(r"[':,;\[\]\\]", path):
-        raise WorkerError("asset_path_invalid", "LUT path contains unsupported filter characters")
-    return f"lut3d=file='{path}':interp=tetrahedral"
+    try:
+        return f"lut3d=file={filter_file(path)}:interp=tetrahedral"
+    except ValueError as error:
+        raise WorkerError("asset_path_invalid", str(error)) from error
 
 
 def export_input_rgb(info: dict[str, Any]) -> str:
