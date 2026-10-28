@@ -24,34 +24,38 @@
 
 ## 环境要求
 
-- DeepSeek Harness **0.2.1-rc.2／rc.3**，具有 Web 服务、连接和工具服务；
-  Node.js **22.19+**。Desktop 提供系统文件夹选择器，Web 需明确配置素材目录。
-- Python **3.10+**，Host 的 `PATH` 中有 **FFmpeg／ffprobe 8+**，包含
-  `libx264`、`libx265` 以及常规 LUT、bilateral、blend 滤镜。
-- 可选 NumPy／OpenCV：肤色处理需要；其它调整不依赖它们，NumPy 可加速统计。
-- 正式构建的 `.tgz` 安装包包含 **18 个锁定字节的 DJI LUT**、44 条精确映射，
-  以及对应的 33／65 尺寸选择。插件自动定位资源，不需用户寻找 LUT 或填写路径。
-  Python、FFmpeg 二进制、模型权重和测试视频不随该跨平台插件包提供。
+DeepSeek Harness **0.2.1-rc.2／rc.3**（Node.js 22.19+）。完整系统包自带固定的
+Python、FFmpeg／ffprobe、NumPy、OpenCV 和 18 个 DJI LUT，无需客户另外安装。
+Desktop 提供系统文件夹选择器，Web 需明确配置素材目录。
 
-主要开发环境为 macOS Desktop。Linux／Windows 的能力取决于宿主与编解码器，
-当前不保证广泛的平台或机型兼容性。
+| 完整安装包 | 系统要求 |
+| --- | --- |
+| `darwin-arm64` | macOS 13+，Apple Silicon |
+| `darwin-x64` | macOS 13+，Intel |
+| `win32-x64` | Windows 10 22H2+，x64 |
+| `linux-x64` | Ubuntu 22.04+／glibc 2.35+，x86-64 |
+
+按 Harness Host 所在机器及其 Node 架构选择安装包。轻量通用包只含 LUT，可在
+首次启动的“运行环境”区域点击“配置独立环境”，也可使用自己准备的 Python 3.10+
+及 FFmpeg／ffprobe 8+。完整包启动时不需要下载环境。
+详细版本、构建方式和平台限制见[独立运行环境说明](runtime/README.md)。
 
 ## 安装
 
 从 [GitHub Releases](https://github.com/PengJunchen/dsh-video-studio/releases)
-下载完整 `.tgz`，在 Harness 插件安装界面选择该文件。GitHub 自动生成的源码
+下载带对应系统后缀的完整 `.tgz`，在 Harness 插件安装界面选择该文件。GitHub 自动生成的源码
 ZIP／tarball 不包含 LUT 载荷，不能当作完整安装包。
 
-也可直接安装发行包地址：
+例如 Apple Silicon Mac 可直接安装：
 
 ```text
-dsh plugin --profile desktop add 'https://github.com/PengJunchen/dsh-video-studio/releases/download/v0.1.0-beta.2/dsh-video-studio-0.1.0-beta.2.tgz'
+dsh plugin --profile desktop add 'https://github.com/PengJunchen/dsh-video-studio/releases/download/v0.1.0-beta.3/dsh-video-studio-0.1.0-beta.3-darwin-arm64.tgz'
 ```
 
 使用已下载文件时，请选择自己实际使用的 profile：
 
 ```sh
-dsh plugin --profile desktop add /absolute/path/to/dsh-video-studio-0.1.0-beta.2.tgz
+dsh plugin --profile desktop add /absolute/path/to/dsh-video-studio-0.1.0-beta.3.tgz
 # 使用 Web Host 时，将 desktop 改为 web。
 ```
 
@@ -69,7 +73,8 @@ dsh plugin --profile desktop add /absolute/path/to/dsh-video-studio-0.1.0-beta.2
   config:
     allowedRoots:
       - /absolute/path/to/videos
-    python: python3
+    # 可选手动覆盖；普通用户保留包内环境即可
+    # python: /absolute/path/to/python
     # 可选：已安装 NumPy／OpenCV 的 Python
     # assets:
     #   vision_python: /absolute/path/to/venv/bin/python
@@ -115,7 +120,9 @@ npm run catalog -- --file /path/to/vivid.cube \
 已有 version 2 catalog 可继续使用；`assets.library_path` 可从 schema 1 LUT
 library 补充同版本、同映射的其它尺寸。
 
-### 可选人物处理环境
+### 高级：使用自己的 Python 环境
+
+完整系统包已包含人物处理依赖。只有希望指定自己的环境时，才需要以下步骤。
 
 ```sh
 python3 -m venv /path/to/video-vision
@@ -179,7 +186,8 @@ npm pack ./dist --ignore-scripts
 构建缺少 LUT、散列不符或尺寸不符时直接失败，随后才将源码和完整资源整理到
 `dist/`。构建使用 Node 标准库，不依赖相邻的 Harness／lut-app 工程或前端编译器。
 客户端从 Harness 的模块加载器获取 React。安装成品后，日常运行不下载 LUT。
-来源、数量、环境依赖和完整打包步骤见[资源构建说明](assets/README.md)。
+来源、数量和 LUT 打包步骤见[资源构建说明](assets/README.md)。
+构建包含 Python／FFmpeg 的完整系统包，见[跨平台运行时构建](runtime/README.md)。
 
 也可独立启动本机界面，此模式不集成 Harness AI：
 

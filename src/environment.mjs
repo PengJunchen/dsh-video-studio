@@ -58,7 +58,7 @@ export function createEnvironmentManager({ root, dataDir, python, visionPython }
     const items = [];
     async function item(id, label, run) {
       try { const version = await run(); items.push({ id, label, ready: true, version }); }
-      catch (error) { items.push({ id, label, ready: false, message: error.code === 'ENOENT' ? '尚未安装或无法找到' : String(error.message).slice(0, 240) }); }
+      catch (error) { items.push({ id, label, ready: false, message: error.code === 'ENOENT' ? '尚未安装或无法找到' : String(error.stderr || error.message).trim().slice(-480) }); }
     }
     await Promise.all([
       item('python', 'Python', async () => {
@@ -73,7 +73,7 @@ export function createEnvironmentManager({ root, dataDir, python, visionPython }
         const match = version.match(/ffmpeg version (?:n)?(\d+)([^\s]*)/);
         if (!match || Number(match[1]) < 8) throw new Error('需要 FFmpeg 8 或更新版本。');
         for (const name of ['lut3d', 'bilateral', 'blend', 'maskedmerge', 'zscale']) if (!new RegExp(`\\b${name}\\b`).test(filters)) throw new Error(`缺少 ${name} 滤镜。`);
-        for (const name of ['libx264', 'libx265']) if (!encoders.includes(name)) throw new Error(`缺少 ${name} 编码器。`);
+        for (const name of ['libx264', 'libx265', 'png']) if (!new RegExp(`\\b${name}\\b`).test(encoders)) throw new Error(`缺少 ${name} 编码器。`);
         if (!hevc.includes('yuv420p10le')) throw new Error('HEVC 编码器不支持 10-bit。');
         return match[1] + match[2];
       }),

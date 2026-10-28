@@ -109,6 +109,8 @@ def main():
         if args.platform.startswith('darwin'):
             env['MACOSX_DEPLOYMENT_TARGET'] = '13.0'
             flags.append('-DCMAKE_OSX_DEPLOYMENT_TARGET=13.0')
+        run(['./configure', '--prefix=' + str(prefix), '--static'], sources['zlib'])
+        run(['make', '-j' + cpu], sources['zlib']); run(['make', 'install'], sources['zlib'])
         run(['./configure', '--prefix=' + str(prefix), '--enable-static', '--enable-pic', '--disable-cli', '--disable-opencl'], sources['x264'])
         run(['make', '-j' + cpu], sources['x264']); run(['make', 'install'], sources['x264'])
         run(['cmake', '-S', str(sources['x265'] / 'source'), '-B', str(build / 'x265-cmake'), *flags,
@@ -119,7 +121,7 @@ def main():
         run(['./configure', '--prefix=' + str(prefix), '--disable-shared', '--enable-static', '--with-pic'], sources['zimg'])
         run(['make', '-j' + cpu], sources['zimg']); run(['make', 'install'], sources['zimg'])
         configure = ['./configure', '--prefix=' + str(prefix), '--pkg-config-flags=--static', '--disable-autodetect',
-                     '--enable-gpl', '--enable-version3', '--enable-libx264', '--enable-libx265', '--enable-libzimg',
+                     '--enable-gpl', '--enable-version3', '--enable-libx264', '--enable-libx265', '--enable-libzimg', '--enable-zlib',
                      '--enable-static', '--disable-shared', '--disable-ffplay', '--disable-doc',
                      '--extra-cflags=-I' + str(prefix / 'include'), '--extra-ldflags=-L' + str(prefix / 'lib'),
                      '--extra-libs=-lc++' if args.platform.startswith('darwin') else '--extra-libs=-lstdc++ -lm -lpthread']

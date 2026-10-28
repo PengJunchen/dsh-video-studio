@@ -6,9 +6,11 @@ DSH Video Studio's original source is licensed under MIT.
 | --- | --- | --- |
 | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) / Cordis | Host services, tools and client module loading | Peer dependencies; supplied by the user's Harness installation. Consult the licenses of the installed packages. |
 | [React](https://github.com/facebook/react) | Studio panel integration | Resolved from the Harness client; no bundled React copy. MIT. |
-| [FFmpeg](https://ffmpeg.org/legal.html) | Video decoding, filtering and encoding | External executable, not redistributed. Its license depends on build configuration and enabled components. Builds with libx264/libx265 have additional licensing terms. |
-| [NumPy](https://numpy.org/doc/stable/license.html) | Optional analysis acceleration | Optional external Python dependency, BSD-3-Clause. |
-| [OpenCV](https://opencv.org/license/) / [opencv-python](https://github.com/opencv/opencv-python) | Optional face candidates and optical-flow tracking | Optional external dependency. OpenCV 4.5+ uses Apache-2.0; wheels and bundled data include their own notices. No cascade files or model weights are copied into this repository. |
+| [Python Standalone Builds](https://docs.astral.sh/python-build-standalone/) | Relocatable Python interpreter | Included in full platform packages; upstream Python and component notices remain in the runtime tree. Exact release and hash are in `runtime/inputs-*.json`. |
+| [FFmpeg](https://ffmpeg.org/legal.html), x264, x265, zimg | Video decoding, filtering and encoding | Included as separate executables in full platform packages. macOS/Linux use the pinned source build with GPL components; Windows uses the pinned [BtbN GPL build](https://github.com/BtbN/FFmpeg-Builds). Component notices, sources and build identities are provided with the runtime release; see `runtime/README.md`. |
+| [NumPy](https://numpy.org/doc/stable/license.html) | Analysis acceleration | Fixed wheel included in full platform packages, BSD-3-Clause. Wheel notices are preserved. |
+| [OpenCV](https://opencv.org/license/) / [opencv-python](https://github.com/opencv/opencv-python) | Face candidates and optical-flow tracking | Fixed headless wheel included in full platform packages. OpenCV uses Apache-2.0; bundled components/data retain their upstream notices in the wheel. |
+| Microsoft Visual C++ runtime | Windows Python/OpenCV runtime dependencies | Redistributable CRT DLLs are included beside the Windows Python interpreter. |
 | DJI LUTs | Camera-specific input restoration | From DJI's official downloads; included in prepared release packages. Original sources, versions and hashes: `assets/manifest.json` and `assets/SOURCES.md`. Source checkouts prepare them explicitly with `assets:prepare`. |
 
 The repository layout was informed by public plugin manifests from

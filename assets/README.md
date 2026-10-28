@@ -39,17 +39,16 @@ regenerated, resampled, gamma-adjusted or replaced with a similar LUT.
 | Component | In the `.tgz`? | Preparation / runtime requirement |
 | --- | --- | --- |
 | Node/Cordis/React | Host supplies them | Install DeepSeek Harness; Node 22.19+ for local builds. The client uses the Host's React. |
-| Python | No | Python 3.10+ on the Host. It prepares resources and runs the worker. |
-| FFmpeg / ffprobe | No | Install 8+ on the Host's PATH with libx264/libx265 and required LUT/bilateral/blend filters. These platform-specific executables have separate licenses. |
+| Python | Yes in full platform packages | Fixed standalone runtime. Source resource preparation needs Python 3.10+. |
+| FFmpeg / ffprobe | Yes in full platform packages | Fixed builds include x264, 10-bit x265 and the required filters. |
 | DJI restoration LUTs | **Yes** | Prepared from locked local copies or official downloads before packaging. |
-| NumPy / OpenCV | No, optional | `python -m pip install -r requirements-vision.txt` in a chosen environment; set `assets.vision_python`. Face-guided skin treatment needs them. |
+| NumPy / OpenCV | Yes in full platform packages | The universal package can obtain the same fixed environment through first-run setup. |
 | Model weights | No | The implemented baseline needs no neural model weights. |
 
-This is a Harness plugin package, not a platform-specific all-in-one application.
-For example, macOS users can install Python/FFmpeg through their normal package
-manager (`brew install python ffmpeg`). Windows/Linux users should install their
-platform's Python and an FFmpeg build with the required codecs/filters. The
-plugin does not silently fetch or run external executables during installation.
+Full platform packages contain these runtimes; the small universal package offers
+an explicit environment setup button. Both use the same LUT preparation process.
+See [runtime/README.md](../runtime/README.md) for platform requirements, source
+builds, first-run configuration and complete package construction.
 
 ## Online build
 
@@ -139,8 +138,8 @@ or put generated files into the resource directory.
 还检查压缩包散列及精确成员。任一资源缺失或不符，构建失败，不发布空壳包。
 
 安装成品后，插件自动寻找包内资源，用户无需手工找 LUT 或配置路径；日常视频
-处理可离线运行，主动调用 AI 时才需要相应模型服务。Python 和 FFmpeg 仍是明确的
-宿主环境依赖，不将这个跨平台插件包误称为自带所有运行时的桌面应用。
+处理可离线运行，主动调用 AI 时才需要相应模型服务。完整系统包自带固定的 Python、FFmpeg 和人物处理依赖；轻量通用包可在首次启动
+时配置同一套独立环境。具体构建见 runtime/README.md。
 
 随包 LUT 来自 DJI 官方下载，出处见 SOURCES。所有构建资料与清单均随包提供，
 下载缓存不随包提供。

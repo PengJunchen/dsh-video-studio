@@ -27,21 +27,23 @@ statistics provide optional suggestions; they do not determine creative intent.
 
 ## Requirements
 
-- DeepSeek Harness **0.2.1-rc.2 / rc.3** with Web server, connection and tool services;
-  Node.js **22.19+**. Desktop provides native folder selection. For Web, configure
-  source roots explicitly on the machine running the Host.
-- Python **3.10+**, and **FFmpeg / ffprobe 8+** on the Host's `PATH`, including
-  `libx264`, `libx265` and the standard LUT, bilateral and blend filters.
-- Optional: NumPy and OpenCV for face-guided skin treatment. Other adjustments
-  work without these packages; NumPy can also accelerate local statistics.
-- Release `.tgz` packages include **18 locked DJI LUT payloads**, 44 exact
-  camera/profile/look mappings and compatible 33/65-size variants. The Studio
-  locates these resources automatically; no LUT path configuration is needed.
-  Model weights, FFmpeg binaries, Python and sample videos are not bundled.
+DeepSeek Harness **0.2.1-rc.2 / rc.3** with Node.js 22.19+. Complete platform
+packages include fixed Python, FFmpeg/ffprobe, NumPy, OpenCV and 18 DJI LUTs.
+Customers do not need separate installations of these components.
 
-macOS Desktop is the primary development environment. Linux/Windows support
-depends on the installed Host and codecs; there is no broad platform or camera
-compatibility guarantee.
+| Package suffix | Host requirement |
+| --- | --- |
+| `darwin-arm64` | macOS 13+, Apple Silicon |
+| `darwin-x64` | macOS 13+, Intel |
+| `win32-x64` | Windows 10 22H2+, x64 |
+| `linux-x64` | Ubuntu 22.04+ / glibc 2.35+, x86-64 |
+
+Choose the architecture of the Harness Host and its Node runtime. Desktop has
+a native folder picker; Web needs an explicit source directory grant. The
+small universal package includes LUTs and offers a first-launch **配置独立环境**
+button, or can use your own Python 3.10+ and FFmpeg/ffprobe 8+. Complete platform
+packages need no runtime download on first launch.
+See [fixed runtime construction and platform limits](runtime/README.md).
 
 ## Install
 
@@ -53,13 +55,13 @@ GitHub's automatically generated source ZIP/tarball does not contain LUT payload
 The CLI can install the release URL directly:
 
 ```text
-dsh plugin --profile desktop add 'https://github.com/PengJunchen/dsh-video-studio/releases/download/v0.1.0-beta.2/dsh-video-studio-0.1.0-beta.2.tgz'
+dsh plugin --profile desktop add 'https://github.com/PengJunchen/dsh-video-studio/releases/download/v0.1.0-beta.3/dsh-video-studio-0.1.0-beta.3.tgz'
 ```
 
 Or install a downloaded package, selecting the profile you actually use:
 
 ```sh
-dsh plugin --profile desktop add /absolute/path/to/dsh-video-studio-0.1.0-beta.2.tgz
+dsh plugin --profile desktop add /absolute/path/to/dsh-video-studio-0.1.0-beta.3.tgz
 # For a Web Host, use --profile web instead.
 ```
 
@@ -78,7 +80,8 @@ filesystem, including when the browser is on another machine.
   config:
     allowedRoots:
       - /absolute/path/to/videos
-    python: python3
+    # Optional explicit override; normally use the bundled runtime.
+    # python: /absolute/path/to/python
     # Optional Python containing NumPy/OpenCV:
     # assets:
     #   vision_python: /absolute/path/to/venv/bin/python

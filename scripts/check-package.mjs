@@ -44,7 +44,7 @@ try {
     while (!['succeeded', 'failed', 'cancelled'].includes(job.status)) {
       if (Date.now() > deadline) throw new Error('Package processing timed out');
       await new Promise(resolveWait => setTimeout(resolveWait, 200));
-      job = await runtime.readJob(job.id);
+      job = (await runtime.readJob(job.id)).job;
     }
     if (job.status !== 'succeeded') throw new Error(JSON.stringify(job.error));
     return job;

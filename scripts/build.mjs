@@ -31,7 +31,7 @@ for (const entry of entries) {
     // npm omits symlinks; materialize Python aliases and shared-library links.
     dereference: true,
     filter: path => !path.split(/[\\/]/).some(part =>
-      part === '__pycache__' || part.startsWith('.') || /\.py[cod]$/.test(part)
+      part === '__pycache__' || part.startsWith('.') && !['.dylibs', '.libs'].includes(part) || /\.py[cod]$/.test(part)
       || /^(darwin|linux|win32)-(arm64|x64)$/.test(part) && part !== bundledPlatform),
   });
 }
