@@ -1,0 +1,69 @@
+{
+  "schema": 1,
+  "id": "media-runtime-20261029-1",
+  "platform": "darwin-x64",
+  "min_os": "13.0",
+  "python_version": "3.12.16",
+  "ffmpeg_version": "9.0.2",
+  "numpy_version": "2.2.6",
+  "opencv_version": "4.11.0",
+  "inputs": [
+    {
+      "name": "ffmpeg.tar.xz",
+      "url": "https://ffmpeg.org/releases/ffmpeg-9.0.2.tar.xz",
+      "sha256": "8c3850283eb25fa026482078a04051e0be17347b09ef81a0849bec15a96e002e",
+      "kind": "source",
+      "project": "ffmpeg",
+      "version": "9.0.2",
+      "bytes": 12040788
+    },
+    {
+      "name": "x264.tar.gz",
+      "url": "https://code.videolan.org/videolan/x264/-/archive/b35605ace3ddf7c1a5d67a2eb553f034aef41d55/x264-b35605ace3ddf7c1a5d67a2eb553f034aef41d55.tar.gz",
+      "kind": "source",
+      "project": "x264",
+      "version": "b35605ace3ddf7c1a5d67a2eb553f034aef41d55",
+      "sha256": "cd71a7515b0e9a012e1ac9b1f8415bebcaf6fc97d4db32286642ac4c0fbe24f9",
+      "bytes": 1040327
+    },
+    {
+      "name": "x265.tar.gz",
+      "url": "https://github.com/Multicorewareinc/x265/releases/download/4.3/x265_4.3.tar.gz",
+      "sha256": "83c53e4c8bbb8f1e33ed59e10a7d621d1d7801ca853910c3eb41f038b8ffb121",
+      "kind": "source",
+      "project": "x265",
+      "version": "4.3",
+      "bytes": 2052112
+    },
+    {
+      "name": "zimg.tar.gz",
+      "url": "https://github.com/sekrit-twc/zimg/archive/refs/tags/release-3.0.6.tar.gz",
+      "sha256": "be89390f13a5c9b2388ce0f44a5e89364a20c1c57ce46d382b1fcc3967057577",
+      "kind": "source",
+      "project": "zimg",
+      "version": "3.0.6",
+      "bytes": 326725
+    },
+    {
+      "name": "python-darwin-x64.tar.gz",
+      "url": "https://github.com/astral-sh/python-build-standalone/releases/download/20261026/cpython-3.12.16%2B20261026-x86_64-apple-darwin-install_only_stripped.tar.gz",
+      "sha256": "37c38fda76fec1fbf310adcbafb7f0d96af13b5511bf8ea954c3aa8eec185734",
+      "bytes": 24757272,
+      "kind": "python"
+    },
+    {
+      "name": "numpy-2.2.6-cp312-cp312-macosx_10_13_x86_64.whl",
+      "url": "https://files.pythonhosted.org/packages/82/5d/c00588b6cf18e1da539b45d3598d3557084990dcc4331960c15ee776ee41/numpy-2.2.6-cp312-cp312-macosx_10_13_x86_64.whl",
+      "sha256": "41c5a21f4a04fa86436124d388f6ed60a9343a6f767fced1a8a71c3fbca038ff",
+      "bytes": 20875348,
+      "kind": "wheel"
+    },
+    {
+      "name": "opencv_python_headless-4.11.0.86-cp37-abi3-macosx_13_0_x86_64.whl",
+      "url": "https://files.pythonhosted.org/packages/3b/43/68555327df94bb9b59a1fd645f63fafb0762515344d2046698762fc19d58/opencv_python_headless-4.11.0.86-cp37-abi3-macosx_13_0_x86_64.whl",
+      "sha256": "a66c1b286a9de872c343ee7c3553b084244299714ebb50fbdcd76f07ebbe6c81",
+      "bytes": 56723330,
+      "kind": "wheel"
+    }
+  ]
+}

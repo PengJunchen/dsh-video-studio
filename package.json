@@ -1,6 +1,6 @@
 {
   "name": "dsh-video-studio",
-  "version": "0.1.0-beta.2",
+  "version": "0.1.0-beta.3",
   "description": "Local video color editing for DeepSeek Harness: camera LUTs, highlights and shadows, skin, selective color and detail-first export.",
   "license": "MIT",
   "author": "Peng Junchen",
@@ -43,13 +43,16 @@
     "assets/library.json",
     "assets/manifest.json",
     "assets/*.md",
-    "assets/luts/*.cube"
+    "assets/luts/*.cube",
+    "runtime/"
   ],
   "scripts": {
     "start": "node src/server.mjs",
     "build": "node scripts/build.mjs",
     "catalog": "node scripts/create-lut-catalog.mjs",
-    "assets:prepare": "python3 scripts/prepare-assets.py"
+    "assets:prepare": "python3 scripts/prepare-assets.py",
+    "environment:check": "node scripts/setup-environment.mjs",
+    "environment:install": "node scripts/setup-environment.mjs --install"
   },
   "engines": {
     "node": ">=22.19.0",
@@ -84,7 +87,7 @@
     },
     "install": {
       "preferred": "tarball",
-      "tarball": "https://github.com/PengJunchen/dsh-video-studio/releases/download/v0.1.0-beta.2/dsh-video-studio-0.1.0-beta.2.tgz"
+      "tarball": "https://github.com/PengJunchen/dsh-video-studio/releases/download/v0.1.0-beta.3/dsh-video-studio-0.1.0-beta.3.tgz"
     }
   },
   "repository": {

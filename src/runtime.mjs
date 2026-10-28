@@ -11,6 +11,7 @@ import { normalizeToneSegments } from './tone-plan.mjs';
 import { adviceSystem, AI_GROUPS, adviceFacts, adviceSamplePlan, parseAdvice } from './ai-advice.mjs';
 import { exportDirectoryIdentity, validateExportDirectory, exportFileIdentity, exportNameFor, publishExport } from './export-files.mjs';
 import { packagedAssets } from './resources.mjs';
+import { createEnvironmentManager } from './environment.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const features = ['lut-batch', 'tone', 'skin', 'local-color', 'finish'];
@@ -33,7 +34,8 @@ export async function createMediaRuntime(config = {}) {
   await mkdir(requestedDataDir, { recursive: true });
   const dataDir = await realpath(requestedDataDir);
   const allowedRoots = await Promise.all((config.allowedRoots ?? [process.cwd()]).map(p => realpath(resolve(p))));
-  const python = config.python ?? process.env.HVP_PYTHON ?? 'python3';
+  const environment = createEnvironmentManager({ root, dataDir, python: config.python ?? process.env.HVP_PYTHON,
+    visionPython: config.workerConfig?.assets?.vision_python });
   const workerPath = resolve(config.workerPath ?? join(root, 'worker/media_worker.py'));
   const workerConfig = { ...config.workerConfig,
     assets: await packagedAssets(root, config.workerConfig?.assets),
@@ -155,10 +157,12 @@ export async function createMediaRuntime(config = {}) {
   async function invoke(request, signal) {
     assertOpen();
     signal?.throwIfAborted();
-    const input = JSON.stringify(workerRequest({ ...workerConfig, ...request }));
+    const execution = await environment.ensureReady();
+    const input = JSON.stringify(workerRequest({ ...workerConfig, ...request,
+      assets: { ...workerConfig.assets, ...request.assets, ...(execution.visionPython ? { vision_python: execution.visionPython } : {}) } }));
     const task = { abort: () => {}, promise: null };
     const promise = new Promise((resolveResult, reject) => {
-      const child = spawn(python, [workerPath], { stdio: ['pipe', 'pipe', 'pipe'], detached: true });
+      const child = spawn(execution.python, [workerPath], { env: execution.env, stdio: ['pipe', 'pipe', 'pipe'], detached: true });
       let stdout = '', stderr = '', spawnError, aborted;
       let forceTimer;
       const signalGroup = kind => {
@@ -567,6 +571,7 @@ export async function createMediaRuntime(config = {}) {
     return queueWorker(action, selected, draft, { timeSeconds, previewQuality, previewScope, playbackQuality, destination, exportQuality, analysisKey: analysisKey(selected, draft) });
   }
   async function queueWorker(action, selected, draft, { timeSeconds, previewQuality, previewScope, playbackQuality, destination, exportQuality, analysisKey: key, analysisRefine } = {}) {
+    const execution = await environment.ensureReady();
     const id = randomUUID();
     const runDir = join(dataDir, 'jobs', id);
     await mkdir(runDir, { recursive: true });
@@ -582,6 +587,7 @@ export async function createMediaRuntime(config = {}) {
       ...(analysisRefine === undefined ? {} : { analysisRefine }),
       ...(['preview', 'proxy', 'analyze'].includes(action) ? { proxyCacheDir: join(dataDir, 'proxy-cache') } : {}),
       ...(action === 'preview' ? { buildProxy: false } : {}) };
+    if (execution.visionPython) requestInput.assets = { ...requestInput.assets, vision_python: execution.visionPython };
     const request = workerRequest(requestInput);
     const job = { id, action, assetId: selected.id, revision: draft.revision, analysisKey: key,
       ...(destination ? { exportDestination: destination, exportName: selected.name } : {}),
@@ -589,7 +595,7 @@ export async function createMediaRuntime(config = {}) {
       planHash: digest(destination ? { request, destination } : request), status: 'queued', progress: 0, createdAt: new Date().toISOString() };
     await atomicJSON(join(runDir, 'request.json'), request);
     await atomicJSON(join(runDir, 'job.json'), job);
-    const child = spawn(process.execPath, [join(root, 'src/job-runner.mjs'), runDir, python, workerPath, dataDir], { detached: true, stdio: 'ignore' });
+    const child = spawn(process.execPath, [join(root, 'src/job-runner.mjs'), runDir, execution.python, workerPath, dataDir], { env: execution.env, detached: true, stdio: 'ignore' });
     await new Promise((resolveSpawn, reject) => { child.once('spawn', resolveSpawn); child.once('error', reject); });
     child.unref();
     return { job };
@@ -910,6 +916,8 @@ export async function createMediaRuntime(config = {}) {
       }
       let value;
       if (req.method === 'GET' && suffix === 'api/state') value = await view();
+      else if (req.method === 'GET' && suffix === 'api/environment') value = await environment.status(url.searchParams.get('refresh') === '1');
+      else if (req.method === 'POST' && suffix === 'api/environment/install') value = await environment.install();
       else if (req.method === 'GET' && suffix === 'api/ai/models') value = await aiModels();
       else if (req.method === 'POST' && suffix === 'api/ai/advice') value = await trackForeground(() => aiAdvice(input));
       else if (req.method === 'POST' && suffix === 'api/ai/apply') value = await applyAiAdvice(input);
@@ -967,6 +975,7 @@ export async function createMediaRuntime(config = {}) {
       for (const controller of pickerControllers) controller.abort(reason);
       for (const controller of aiControllers.values()) controller.abort(reason);
       for (const task of processes) task.abort(reason);
+      await environment.close();
       await Promise.allSettled([...foreground]);
       await Promise.allSettled([...processes].map(task => task.promise));
       await mutation;

@@ -1,0 +1,41 @@
+{
+  "schema": 1,
+  "id": "media-runtime-20261029-1",
+  "platform": "win32-x64",
+  "min_os": "Windows 10 22H2",
+  "python_version": "3.12.16",
+  "ffmpeg_version": "9.0.2",
+  "numpy_version": "2.2.6",
+  "opencv_version": "4.11.0",
+  "inputs": [
+    {
+      "name": "python-win32-x64.tar.gz",
+      "url": "https://github.com/astral-sh/python-build-standalone/releases/download/20261026/cpython-3.12.16%2B20261026-x86_64-pc-windows-msvc-install_only_stripped.tar.gz",
+      "sha256": "1f2ab53880fc67ea323398c6388e05af28addc99a8e389209f08a51fdff4b149",
+      "bytes": 22014416,
+      "kind": "python"
+    },
+    {
+      "name": "numpy-2.2.6-cp312-cp312-win_amd64.whl",
+      "url": "https://files.pythonhosted.org/packages/36/fa/8c9210162ca1b88529ab76b41ba02d433fd54fecaf6feb70ef9f124683f1/numpy-2.2.6-cp312-cp312-win_amd64.whl",
+      "sha256": "c1f9540be57940698ed329904db803cf7a402f3fc200bfe599334c9bd84a40b2",
+      "bytes": 12614190,
+      "kind": "wheel"
+    },
+    {
+      "name": "opencv_python_headless-4.11.0.86-cp37-abi3-win_amd64.whl",
+      "url": "https://files.pythonhosted.org/packages/86/8a/69176a64335aed183529207ba8bc3d329c2999d852b4f3818027203f50e6/opencv_python_headless-4.11.0.86-cp37-abi3-win_amd64.whl",
+      "sha256": "6c304df9caa7a6a5710b91709dd4786bf20a74d57672b3c31f7033cc638174ca",
+      "bytes": 39402386,
+      "kind": "wheel"
+    },
+    {
+      "name": "ffmpeg-n9.0.2-36-g6882969ce9-win64-gpl-shared-9.0.zip",
+      "url": "https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2026-10-27-18-38/ffmpeg-n9.0.2-36-g6882969ce9-win64-gpl-shared-9.0.zip",
+      "sha256": "dbfef481021a393424c9bd4e588c8d568f0ebba780c01c63dfcb87c87be901c7",
+      "bytes": 87215453,
+      "kind": "ffmpeg-prebuilt",
+      "source_repository": "https://github.com/BtbN/FFmpeg-Builds/tree/autobuild-2026-10-27-18-38"
+    }
+  ]
+}

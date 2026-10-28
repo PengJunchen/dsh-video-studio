@@ -539,3 +539,13 @@ body.has-workspace #app { display: flex; height: 100dvh; overflow: hidden; }
   .workspace-topbar .topbar-label { flex-basis:50%; }
   .panel-tools { margin-left:0; }
 }
+/* First-run setup stays in the workspace and never covers the video with a dialog. */
+.environment-panel { margin: 12px 24px; padding: 16px 20px; border: 1px solid #52666b; border-radius: 12px; background: #17292d; color: #e8f2f0; font-size: 13px; }
+.environment-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.environment-heading small { display: block; margin-top: 4px; color: #b8cac8; }
+.environment-panel button { color: #e8f2f0; background: #29464c; border: 1px solid #6c888d; border-radius: 8px; padding: 7px 12px; cursor: pointer; }
+.environment-panel .primary { background: #b9ead7; color: #142f29; font-weight: 700; margin-right: 10px; }
+.environment-panel ul { list-style: none; padding: 0; margin: 14px 0; }
+.environment-panel li { display: flex; justify-content: space-between; gap: 16px; margin: 8px 0; }
+.environment-panel li span:last-child { overflow-wrap: anywhere; text-align: right; color: #b8cac8; }
+.environment-panel .is-error { color: #ffbfb4; }

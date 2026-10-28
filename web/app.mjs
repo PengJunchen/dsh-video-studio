@@ -17,6 +17,7 @@ const app = document.querySelector('#app');
 document.body.classList.toggle('native-harness', window.location.protocol === 'dsh-app:');
 const hevcPlaybackSupported = Boolean(document.createElement('video').canPlayType('video/mp4; codecs="hvc1.2.4.L150.B0"'));
 const state = {
+  environment: null, environmentOpen: false, environmentError: null,
   assets: [], directory: '', asset: null, draft: null, analysis: null,
   analysisKey: null, analysisJob: null, analysisError: null,
   sourcePreviewRef: null, previewRef: null, samplePreviewRef: null, sampleImage: null,
@@ -67,6 +68,7 @@ let aiSequence = 0;
 let aiModelSequence = 0;
 let liveFrameRequest = 0;
 let seekDebounce = 0;
+let environmentTimer;
 const cancellationRequests = new Set();
 
 const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (character) => ({
@@ -308,7 +310,44 @@ function unavailableSettings() {
 }
 
 function canProcess() {
-  return state.features.length > 0 && unavailableSettings().length === 0;
+  return state.environment?.ready === true && state.features.length > 0 && unavailableSettings().length === 0;
+}
+
+function environmentBusy() {
+  return ['downloading', 'extracting', 'checking'].includes(state.environment?.installation?.state);
+}
+
+function renderEnvironment() {
+  const value = state.environment;
+  const ready = value?.ready && value?.visionReady;
+  const detail = state.environmentOpen || !ready;
+  const source = ({ bundled: '插件自带', managed: '插件独立环境', system: '系统环境', configured: '指定环境' })[value?.source] || '检测中';
+  return `<section class="environment-panel ${ready ? 'is-ready' : ''}" aria-label="运行环境"><div class="environment-heading"><div><strong>${environmentBusy() ? '正在配置运行环境' : ready ? '运行环境已就绪' : '准备视频运行环境'}</strong><small>${escapeHtml(value?.platform || '')} · ${source}</small></div><button type="button" data-action="toggle-environment" aria-expanded="${detail}">${detail ? '收起' : '查看'}</button></div>
+    ${detail ? `<ul>${(value?.items || []).map(item => `<li><span>${item.ready ? '✓' : '○'} ${escapeHtml(item.label)}</span><span>${escapeHtml(item.version || item.message)}</span></li>`).join('')}</ul>
+      ${!value ? '<p>正在检测 Python、编解码器与人物处理依赖…</p>' : ''}
+      ${environmentBusy() ? `<p role="status">${escapeHtml(value.installation.message)}</p>` : ''}
+      ${value?.installation?.state === 'failed' ? `<p class="is-error" role="alert">${escapeHtml(value.installation.message)}</p>` : ''}
+      ${state.environmentError ? `<p class="is-error" role="alert">${escapeHtml(state.environmentError)}</p>` : ''}
+      ${!ready && !environmentBusy() ? `<p>完整系统安装包已包含所需环境。通用安装包可在此下载固定版本，保存到插件的数据目录，无需管理员权限。</p>${value?.canInstall ? `<button class="button primary" type="button" data-action="install-environment">配置独立环境${value.downloadBytes ? ` · ${Math.ceil(value.downloadBytes / 1024 / 1024)} MB` : ''}</button>` : `<p>${escapeHtml(value?.installReason || '')}</p>`}` : ''}
+      <button class="button secondary" type="button" data-action="check-environment" ${mutedAttribute(environmentBusy())}>重新检查</button>` : ''}</section>`;
+}
+
+async function loadEnvironment(refresh = false) {
+  clearTimeout(environmentTimer);
+  try {
+    state.environment = await requestJson(fetch, base, 'GET', `environment${refresh ? '?refresh=1' : ''}`);
+    state.environmentError = null;
+  } catch (error) { state.environmentError = errorMessage(error); }
+  render();
+  if (environmentBusy()) environmentTimer = setTimeout(() => loadEnvironment(), 1500);
+}
+
+async function installEnvironment() {
+  if (environmentBusy() || !state.environment?.canInstall) return;
+  state.environmentError = null;
+  try { state.environment = await requestJson(fetch, base, 'POST', 'environment/install', {}); }
+  catch (error) { state.environmentError = errorMessage(error); }
+  await loadEnvironment();
 }
 
 function analysisPending() {
@@ -386,7 +425,7 @@ function renderSidebar() {
     <div class="brand"><span class="brand-mark" aria-hidden="true">映</span><span><strong>影调工作台</strong><small>VIDEO COLOR STUDIO</small></span></div>
     ${picker}
     ${sources}
-    <div class="sidebar-foot"><span class="foot-dot" aria-hidden="true"></span>在本机完成整理与处理</div>
+    <div class="sidebar-foot"><button type="button" data-action="toggle-environment">运行环境${state.environment?.ready ? ' ✓' : ''}</button></div>
   </aside>`;
 }
 
@@ -405,7 +444,7 @@ function renderEmpty() {
         <p>扫描素材，确认 DJI 色彩还原，再按需要调整明暗、肤色与局部颜色。每一步都由你决定。</p>
         <div class="welcome-steps"><span><b>01</b> 扫描视频</span><span><b>02</b> 确认画面</span><span><b>03</b> 预览处理</span></div>
       </div></div>
-    <div class="welcome-hint">先在左侧选择文件夹，或输入素材路径开始扫描。</div>
+    ${renderEnvironment()}<div class="welcome-hint">先在左侧选择文件夹，或输入素材路径开始扫描。</div>
   </main>`;
 }
 
@@ -962,6 +1001,7 @@ function renderWorkspace() {
   return `<main class="workspace wizard-workspace"><header class="topbar workspace-topbar"><span class="eyebrow">${escapeHtml(steps[state.stepIndex])} <span class="step-count">${state.stepIndex + 1} / 5</span></span><span class="topbar-label">${escapeHtml(state.asset.name || '当前视频')}</span>
     <div class="panel-tools" role="group" aria-label="显示面板">${state.outputRef ? '<button type="button" data-action="show-export-result">导出结果</button>' : ''}<button type="button" data-action="toggle-materials" aria-controls="media-sidebar" aria-expanded="${!state.materialsCollapsed}">${state.materialsCollapsed ? '展开素材' : '收起素材'}</button><button type="button" data-action="toggle-adjustments" aria-controls="adjustment-panel" aria-expanded="${!state.adjustmentsCollapsed}">${state.adjustmentsCollapsed ? '展开调整' : '收起调整'}</button></div></header>
     <div class="workspace-scroll wizard-scroll">
+    ${state.environmentOpen || state.environment?.ready === false ? renderEnvironment() : ''}
     ${state.pending === 'select' ? `<div class="analysis-progress" role="status">正在切换至 ${escapeHtml(state.openingName)}…</div>` : ''}
     <div class="input-summary" aria-label="输入格式与还原状态"><span><strong>${escapeHtml(input.label)}</strong> · ${escapeHtml(input.status)}</span><span>${escapeHtml(input.restoreStatus)}</span>${state.stepIndex !== 0 && hasFeature('lut-batch') ? '<button type="button" data-action="go-step" data-step="0">查看还原</button>' : ''}</div>
     ${analysisPending() ? `<div class="analysis-progress" role="status"><span class="analysis-spinner" aria-hidden="true"></span><span>${state.analysisJob?.refined ? '正在细化变化位置，保留当前预览和已确认方案。' : '正在快速抽样，可先看当前帧；建议会在明暗步骤更新。'}</span></div>` : ''}
@@ -2207,6 +2247,9 @@ app.addEventListener('click', async (event) => {
     return;
   }
   if (action === 'dismiss') { state.notice = null; render(); return; }
+  if (action === 'toggle-environment') { state.environmentOpen = !state.environmentOpen; render(); return; }
+  if (action === 'check-environment') return loadEnvironment(true);
+  if (action === 'install-environment') return installEnvironment();
   if (action === 'toggle-ai-panel') {
     if (state.aiExpanded) { state.aiExpanded = false; render(); return; }
     return openAiPanel();
@@ -2526,4 +2569,5 @@ document.addEventListener('keydown', (event) => {
 });
 
 render();
+loadEnvironment();
 loadState();

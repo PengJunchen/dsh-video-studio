@@ -20,3 +20,10 @@ models/
 *.pt
 *.safetensors
 assets/.downloads/
+runtime/.downloads/
+runtime/.build/
+runtime/darwin-*/
+runtime/linux-*/
+runtime/win32-*/
+*.tar.gz
+release/

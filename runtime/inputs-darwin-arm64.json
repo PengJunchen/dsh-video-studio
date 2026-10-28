@@ -1,0 +1,69 @@
+{
+  "schema": 1,
+  "id": "media-runtime-20261029-1",
+  "platform": "darwin-arm64",
+  "min_os": "13.0",
+  "python_version": "3.12.16",
+  "ffmpeg_version": "9.0.2",
+  "numpy_version": "2.2.6",
+  "opencv_version": "4.11.0",
+  "inputs": [
+    {
+      "name": "python.tar.gz",
+      "url": "https://github.com/astral-sh/python-build-standalone/releases/download/20261026/cpython-3.12.16%2B20261026-aarch64-apple-darwin-install_only_stripped.tar.gz",
+      "sha256": "353d5f1b4fd2715e7053f12f068435d5bbad16b91e057006b5d01e0925709a7e",
+      "bytes": 25035343,
+      "kind": "python"
+    },
+    {
+      "name": "numpy-2.2.6-cp312-cp312-macosx_11_0_arm64.whl",
+      "url": "https://files.pythonhosted.org/packages/66/ee/560deadcdde6c2f90200450d5938f63a34b37e27ebff162810f716f6a230/numpy-2.2.6-cp312-cp312-macosx_11_0_arm64.whl",
+      "sha256": "de749064336d37e340f640b05f24e9e3dd678c57318c7289d222a8a2f543e90c",
+      "bytes": 14119362,
+      "kind": "wheel"
+    },
+    {
+      "name": "opencv_python_headless-4.11.0.86-cp37-abi3-macosx_13_0_arm64.whl",
+      "url": "https://files.pythonhosted.org/packages/dc/53/2c50afa0b1e05ecdb4603818e85f7d174e683d874ef63a6abe3ac92220c8/opencv_python_headless-4.11.0.86-cp37-abi3-macosx_13_0_arm64.whl",
+      "sha256": "48128188ade4a7e517237c8e1e11a9cdf5c282761473383e77beb875bb1e61ca",
+      "bytes": 37326460,
+      "kind": "wheel"
+    },
+    {
+      "name": "ffmpeg.tar.xz",
+      "url": "https://ffmpeg.org/releases/ffmpeg-9.0.2.tar.xz",
+      "sha256": "8c3850283eb25fa026482078a04051e0be17347b09ef81a0849bec15a96e002e",
+      "kind": "source",
+      "project": "ffmpeg",
+      "version": "9.0.2",
+      "bytes": 12040788
+    },
+    {
+      "name": "x264.tar.gz",
+      "url": "https://code.videolan.org/videolan/x264/-/archive/b35605ace3ddf7c1a5d67a2eb553f034aef41d55/x264-b35605ace3ddf7c1a5d67a2eb553f034aef41d55.tar.gz",
+      "kind": "source",
+      "project": "x264",
+      "version": "b35605ace3ddf7c1a5d67a2eb553f034aef41d55",
+      "sha256": "cd71a7515b0e9a012e1ac9b1f8415bebcaf6fc97d4db32286642ac4c0fbe24f9",
+      "bytes": 1040327
+    },
+    {
+      "name": "x265.tar.gz",
+      "url": "https://github.com/Multicorewareinc/x265/releases/download/4.3/x265_4.3.tar.gz",
+      "sha256": "83c53e4c8bbb8f1e33ed59e10a7d621d1d7801ca853910c3eb41f038b8ffb121",
+      "kind": "source",
+      "project": "x265",
+      "version": "4.3",
+      "bytes": 2052112
+    },
+    {
+      "name": "zimg.tar.gz",
+      "url": "https://github.com/sekrit-twc/zimg/archive/refs/tags/release-3.0.6.tar.gz",
+      "sha256": "be89390f13a5c9b2388ce0f44a5e89364a20c1c57ce46d382b1fcc3967057577",
+      "kind": "source",
+      "project": "zimg",
+      "version": "3.0.6",
+      "bytes": 326725
+    }
+  ]
+}
