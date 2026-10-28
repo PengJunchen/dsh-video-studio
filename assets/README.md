@@ -26,7 +26,8 @@ in the repository's `Release` workflow.
 - [`library.json`](library.json): selected schema-1 source records and size variants.
 - [`manifest.json`](manifest.json): one row per unique payload, with exact byte
   size, SHA-256, 3D grid, original official page and download URL. ZIP resources
-  also pin the container SHA-256 and exact member name.
+  also pin the container SHA-256 and exact member name. The `distribution`
+  record pins the authorized maintainer resource archive separately.
 - [`NOTICE.md`](NOTICE.md): DJI materials and the maintainer-confirmed
   distribution scope. MIT applies to original plugin code, not these LUTs.
 
@@ -61,12 +62,25 @@ npm run build
 npm pack ./dist --ignore-scripts
 ```
 
-`--download` explicitly permits requests to the locked DJI HTTPS sources.
-Archive bytes and extracted member bytes are checked independently. Already
-valid payloads are reused; incomplete downloads are never published as LUTs.
+`--download` obtains the authorized maintainer resource archive from the pinned
+GitHub release URL, checks its complete SHA-256/size, then checks every original
+LUT independently. This avoids vendor-origin 403 responses seen from the cloud
+build network. It is a delivery mirror, not a replacement or a new LUT formula.
+Already valid payloads are reused; incomplete downloads are never published as LUTs.
 The downloader honors standard proxy environment variables if the local network
 requires them. Download caches live in ignored `assets/.downloads/`; they are
 excluded from the package and may be removed after a successful build.
+
+To reconstruct directly from the original DJI HTTPS sources instead, use:
+
+```sh
+npm run assets:prepare -- --download --official-only
+```
+
+This route also checks the two ZIP containers and exact members independently.
+It fails clearly if an original URL is inaccessible or its bytes have changed;
+it does not accept different bytes. The same `--source` offline route remains
+available even when a network origin is unavailable.
 
 `npm run build` checks every required file's hash, size and declared grid,
 and checks that all catalog/library references resolve. It fails if any LUT
@@ -103,7 +117,9 @@ or put generated files into the resource directory.
 来源数、机型映射数和实际文件数混为一谈。
 
 源码仓库保存清单和构建工具，`.cube` 不进入 Git 历史；完整发行 `.tgz` 则包含
-实际 LUT。构建时显式选择 `--download` 获取官方锁定文件，或用 `--source` 指向
+实际 LUT。构建时显式选择 `--download` 获取已锁定的维护者授权资源包，再检查
+各个 DJI 原始文件；`--official-only` 可改为直连官方来源。官方路径可能因云端
+网络返回 403，不能把本机缓存成功当作官网下载必定可用。也可用 `--source` 指向
 已有的 SHA 文件目录。每个原文件均检查 SHA-256、字节大小、格点；两个 ZIP 来源
 还检查压缩包散列及精确成员。任一资源缺失或不符，构建失败，不发布空壳包。
 

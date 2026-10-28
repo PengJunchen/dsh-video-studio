@@ -193,5 +193,13 @@
       "title": "DJI OSMO Pocket 4P D-Log2 to Rec.709 size65",
       "version": "1.0"
     }
-  ]
+  ],
+  "distribution": {
+    "url": "https://github.com/PengJunchen/dsh-video-studio/releases/download/lut-resources-v1/dsh-video-studio-dji-restoration-luts-v1.tar.gz",
+    "sha256": "9edab28c5c8759bbcd81590b24465804664fee91fad02372132bbc565276076b",
+    "bytes": 11066022,
+    "format": "tar.gz",
+    "member_prefix": "luts/",
+    "permission": "Maintainer-confirmed authorization for published packages; DJI payloads are not MIT"
+  }
 }

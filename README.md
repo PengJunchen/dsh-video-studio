@@ -189,9 +189,11 @@ npm run build
 npm pack ./dist --ignore-scripts
 ```
 
-Resource preparation explicitly downloads locked files from DJI's original
-HTTPS sources, verifies SHA-256 / sizes, and extracts exact members of two ZIP
-sources. For an offline build, replace `--download` with `--source /path/to/luts`.
+Resource preparation downloads the authorized maintainer resource archive,
+verifies its locked SHA-256 and every original LUT's hash/size. Original DJI
+HTTPS sources and ZIP members remain in the manifest; use
+`--download --official-only` to fetch those directly. For an offline build,
+replace `--download` with `--source /path/to/luts`.
 The source directory must contain the SHA-named files in the manifest.
 
 The build refuses missing, modified or wrong-grid LUTs, then copies the runtime

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Prepare the exact locked LUT payload tree from local files or DJI sources."""
+"""Prepare locked LUT payloads from local files, the release archive, or DJI."""
 from __future__ import annotations
 
 import argparse
@@ -10,6 +10,7 @@ from pathlib import Path
 import re
 import shutil
 import tempfile
+import tarfile
 from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 import zipfile
@@ -35,16 +36,23 @@ def official(url: str) -> bool:
         or (parsed.hostname or '').endswith(('.dji.com', '.djicdn.com')))
 
 
-def download(url: str, destination: Path, expected: str) -> None:
-    if not official(url):
-        raise ValueError('Only locked official DJI HTTPS sources are accepted')
+def trusted(url: str, mirror: bool) -> bool:
+    parsed = urlparse(url)
+    return official(url) or (mirror and parsed.scheme == 'https' and not parsed.username and not parsed.password and (
+        parsed.hostname == 'github.com' and parsed.path.startswith('/PengJunchen/dsh-video-studio/releases/')
+        or parsed.hostname == 'release-assets.githubusercontent.com'))
+
+
+def download(url: str, destination: Path, expected: str, *, mirror: bool = False) -> None:
+    if not trusted(url, mirror):
+        raise ValueError('Only locked official DJI or maintainer release HTTPS sources are accepted')
     if destination.is_file() and hashlib.sha256(destination.read_bytes()).hexdigest() == expected:
         return
     temporary = destination.with_suffix('.partial')
     try:
         with urlopen(Request(url, headers={'User-Agent': 'DSH-Video-Studio/0.1'}), timeout=60) as response:
-            if not official(response.url):
-                raise ValueError('Download redirected outside official DJI hosts')
+            if not trusted(response.url, mirror):
+                raise ValueError('Download redirected outside the locked source hosts')
             total = 0
             with temporary.open('wb') as output:
                 while chunk := response.read(1024 * 1024):
@@ -62,15 +70,30 @@ def download(url: str, destination: Path, expected: str) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--source', type=Path, help='Directory containing already prepared SHA-named CUBE files')
-    parser.add_argument('--download', action='store_true', help='Explicitly permit fetching missing resources from locked official DJI URLs')
+    parser.add_argument('--download', action='store_true', help='Explicitly permit fetching missing resources from the locked release archive or DJI sources')
+    parser.add_argument('--official-only', action='store_true', help='Fetch original DJI sources instead of the pinned maintainer resource archive')
     args = parser.parse_args()
     asset_root = ROOT / 'assets'
-    entries = json.loads((asset_root / 'manifest.json').read_text())['payloads']
+    manifest = json.loads((asset_root / 'manifest.json').read_text())
+    entries = manifest['payloads']
     destination = asset_root / 'luts'
     destination.mkdir(parents=True, exist_ok=True)
     cache = asset_root / '.downloads'
     if args.download:
         cache.mkdir(exist_ok=True)
+    if args.official_only and not args.download:
+        raise ValueError('--official-only requires --download')
+    bundle = None
+    needs_network = any(not checked(destination / e['file'], e)
+                        and not (args.source and checked(args.source / e['file'], e)) for e in entries)
+    if args.download and needs_network and not args.official_only and manifest.get('distribution'):
+        distribution = manifest['distribution']
+        if distribution.get('format') != 'tar.gz' or distribution.get('member_prefix') != 'luts/' or not re.fullmatch(r'[a-f0-9]{64}', distribution.get('sha256', '')):
+            raise ValueError('Invalid resource archive lock')
+        bundle = cache / distribution['sha256']
+        download(distribution['url'], bundle, distribution['sha256'], mirror=True)
+        if bundle.stat().st_size != distribution['bytes']:
+            raise ValueError('Resource archive size differs from lock')
     prepared = 0
     with tempfile.TemporaryDirectory(prefix='.lut-stage-', dir=asset_root) as temporary:
         staging = Path(temporary)
@@ -85,10 +108,20 @@ def main() -> None:
             local = args.source / entry['file'] if args.source else None
             if local and checked(local, entry):
                 shutil.copyfile(local, candidate)
+            elif bundle:
+                with tarfile.open(bundle, 'r:gz') as archive:
+                    member = archive.getmember('luts/' + entry['file'])
+                    if not member.isfile() or member.size != entry['bytes'] or member.size > LIMIT:
+                        raise ValueError('Resource archive member differs from lock')
+                    with archive.extractfile(member) as incoming, candidate.open('wb') as output:
+                        shutil.copyfileobj(incoming, output)
             elif args.download:
                 expected = entry.get('archive_sha256', entry['sha256'])
                 source = cache / expected
-                download(entry['source_url'], source, expected)
+                try:
+                    download(entry['source_url'], source, expected)
+                except Exception as error:
+                    raise ValueError(f"{entry['title']} ({entry['source_url']}): {error}") from error
                 if entry.get('archive_member'):
                     with zipfile.ZipFile(source) as archive:
                         member = archive.getinfo(entry['archive_member'])

@@ -171,8 +171,9 @@ npm run build
 npm pack ./dist --ignore-scripts
 ```
 
-资源准备明确从清单锁定的 DJI 官方 HTTPS 地址获取文件，检查 SHA-256 和字节
-大小；ZIP 资源只取指定成员。离线构建将 `--download` 换成
+资源准备从维护者获授权发布的固定资源包获取文件，先检查资源包 SHA-256，再
+检查每个原始 LUT 的散列和字节大小。原始官方 URL／ZIP 成员仍在清单中，可用
+`--download --official-only` 直接获取。离线构建将 `--download` 换成
 `--source /path/to/luts`，目录中需有清单指定的 SHA 文件名。
 
 构建缺少 LUT、散列不符或尺寸不符时直接失败，随后才将源码和完整资源整理到
