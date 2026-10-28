@@ -1,0 +1,68 @@
+{
+  "name": "dsh-video-studio",
+  "version": "0.1.0-beta.1",
+  "description": "Local video color editing for DeepSeek Harness: camera LUTs, highlights and shadows, skin, selective color and detail-first export.",
+  "license": "MIT",
+  "author": "Peng Junchen",
+  "type": "module",
+  "main": "./index.mjs",
+  "icon": "./icon.svg",
+  "exports": {
+    ".": "./index.mjs",
+    "./runtime": "./bundles/runtime/index.mjs",
+    "./studio": "./bundles/studio/index.mjs",
+    "./lut-batch": "./plugins/lut-batch/index.mjs",
+    "./tone": "./plugins/tone/index.mjs",
+    "./skin": "./plugins/skin/index.mjs",
+    "./local-color": "./plugins/local-color/index.mjs",
+    "./finish": "./plugins/finish/index.mjs",
+    "./client": "./client.js",
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "index.mjs", "client.js", "icon.svg", "cordis.patch.yml",
+    "src/", "web/", "worker/*.py", "adapters/harness/*.mjs",
+    "bundles/runtime/index.mjs", "bundles/studio/index.mjs",
+    "plugins/*/index.mjs", "scripts/*.mjs",
+    "requirements-vision.txt", "THIRD_PARTY_NOTICES.md",
+    "README.md", "README.zh-CN.md", "LICENSE"
+  ],
+  "scripts": {
+    "start": "node src/server.mjs",
+    "build": "node scripts/build.mjs",
+    "catalog": "node scripts/create-lut-catalog.mjs"
+  },
+  "engines": {
+    "node": ">=22.19.0",
+    "dsh": ">=0.2.1-rc.2 <0.3.0"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.5",
+    "@deepseek-ai/dsh-tools": ">=0.0.1-rc.1 <1"
+  },
+  "peerDependenciesMeta": {
+    "@deepseek-ai/cordis": { "optional": true },
+    "@deepseek-ai/dsh-tools": { "optional": true }
+  },
+  "dsh": {
+    "bundle": { "patch": "./cordis.patch.yml" },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-renderer",
+        "@deepseek-ai/dsh-client-ui-layout",
+        "@deepseek-ai/dsh-client-ui-sidebar"
+      ],
+      "external": ["react"]
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PengJunchen/dsh-video-studio.git"
+  },
+  "homepage": "https://github.com/PengJunchen/dsh-video-studio#readme",
+  "bugs": { "url": "https://github.com/PengJunchen/dsh-video-studio/issues" },
+  "keywords": ["deepseek-harness", "dsh-plugin", "video", "color-grading", "lut", "dji", "ffmpeg"],
+  "publishConfig": { "access": "public" }
+}

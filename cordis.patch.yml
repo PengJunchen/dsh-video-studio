@@ -1,0 +1,11 @@
+# One runtime serves the Studio and every independent feature.
+# Desktop starts with no source grants; choose a folder in the Studio.
+# For Web, add allowedRoots in this profile's own patch.
+- insert:
+    - id: hvp-runtime
+      name: dsh-video-studio/runtime
+      config:
+        allowedRoots: []
+        dataDir: !!js dshHomePath('video-studio')
+    - id: hvp-studio
+      name: dsh-video-studio
