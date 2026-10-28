@@ -99,11 +99,11 @@ Web 手动输入路径扫描时需要 `allowedRoots`。Desktop 文件夹选择�
       lut_root: /absolute/path/to/video-luts
 ```
 
-请取得准确对应相机和 Log 格式、有权使用的 **3D CUBE → Rec.709** 还原 LUT。
+请取得准确对应相机和 Log 格式的 **3D CUBE → Rec.709** 还原 LUT。
 在源码目录中运行：
 
 ```sh
-npm run catalog -- --file /path/to/authorized-vivid.cube \
+npm run catalog -- --file /path/to/vivid.cube \
   --camera pocket4p --profile dlog2 --look vivid \
   --directory /path/to/video-luts
 ```
@@ -171,7 +171,7 @@ npm run build
 npm pack ./dist --ignore-scripts
 ```
 
-资源准备从维护者获授权发布的固定资源包获取文件，先检查资源包 SHA-256，再
+随包 LUT 来自 DJI 官方下载。资源准备从固定资源包获取文件，先检查资源包 SHA-256，再
 检查每个原始 LUT 的散列和字节大小。原始官方 URL／ZIP 成员仍在清单中，可用
 `--download --official-only` 直接获取。离线构建将 `--download` 换成
 `--source /path/to/luts`，目录中需有清单指定的 SHA 文件名。
@@ -179,7 +179,7 @@ npm pack ./dist --ignore-scripts
 构建缺少 LUT、散列不符或尺寸不符时直接失败，随后才将源码和完整资源整理到
 `dist/`。构建使用 Node 标准库，不依赖相邻的 Harness／lut-app 工程或前端编译器。
 客户端从 Harness 的模块加载器获取 React。安装成品后，日常运行不下载 LUT。
-来源、数量、许可、环境依赖和完整打包步骤见[资源构建说明](assets/README.md)。
+来源、数量、环境依赖和完整打包步骤见[资源构建说明](assets/README.md)。
 
 也可独立启动本机界面，此模式不集成 Harness AI：
 
@@ -205,5 +205,5 @@ assets/                                锁定资源清单及构建时准备的 L
 ## 协议
 
 本项目原创源码使用 **MIT** 协议，版权所有 Peng Junchen。
-外部依赖、编解码器与相机 LUT 的条款见[第三方说明](THIRD_PARTY_NOTICES.md)。
+外部依赖、编解码器及资源来源见[第三方说明](THIRD_PARTY_NOTICES.md)。
 本项目是独立社区插件，不是 DeepSeek、DJI 或剪映的官方产品。

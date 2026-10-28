@@ -27,9 +27,8 @@ in the repository's `Release` workflow.
 - [`manifest.json`](manifest.json): one row per unique payload, with exact byte
   size, SHA-256, 3D grid, original official page and download URL. ZIP resources
   also pin the container SHA-256 and exact member name. The `distribution`
-  record pins the authorized maintainer resource archive separately.
-- [`NOTICE.md`](NOTICE.md): DJI materials and the maintainer-confirmed
-  distribution scope. MIT applies to original plugin code, not these LUTs.
+  record pins the resource archive separately.
+- [`SOURCES.md`](SOURCES.md): the bundled LUTs come from DJI's official downloads.
 
 The manifest pins its catalog source to a specific `lut-app` Git commit.
 Builds do not read a sibling checkout. Values are copied byte-for-byte, not
@@ -62,7 +61,7 @@ npm run build
 npm pack ./dist --ignore-scripts
 ```
 
-`--download` obtains the authorized maintainer resource archive from the pinned
+`--download` obtains the resource archive from the pinned
 GitHub release URL, checks its complete SHA-256/size, then checks every original
 LUT independently. This avoids vendor-origin 403 responses seen from the cloud
 build network. It is a delivery mirror, not a replacement or a new LUT formula.
@@ -84,7 +83,7 @@ available even when a network origin is unavailable.
 
 `npm run build` checks every required file's hash, size and declared grid,
 and checks that all catalog/library references resolve. It fails if any LUT
-is missing or altered. It then copies sources, manifests, notices and the
+is missing or altered. It then copies sources, manifests, source references and the
 prepared `assets/luts/` into `dist/`. `npm pack ./dist` uses the package file
 allowlist to produce `dsh-video-studio-<version>.tgz`.
 
@@ -100,6 +99,22 @@ Only the 18 locked SHA-named files are read. No network is used without
 `--download`. For the same original source bytes, LUT payloads are reproducible;
 this is not a claim that video encoders or npm's compressed archives produce
 identical bytes across operating systems/tool versions.
+
+## Resource archive construction
+
+The separately published resource archive is assembled from the same prepared
+files with the included standard-library script:
+
+```sh
+python3 scripts/package-resources.py --output /tmp/dsh-video-studio-dji-restoration-luts-v2.tar.gz
+```
+
+It checks every LUT's hash/size, then packs the original bytes, `catalog.json`,
+`library.json` and `SOURCES.md` in a fixed order with normalized timestamps and
+file modes. Its printed SHA-256/size are pinned in `manifest.json` before the
+application release build. The outer manifest is excluded to avoid a circular
+archive hash. Downloading the complete application `.tgz` needs no resource
+archive preparation.
 
 ## Automatic discovery after installation
 
@@ -117,7 +132,7 @@ or put generated files into the resource directory.
 来源数、机型映射数和实际文件数混为一谈。
 
 源码仓库保存清单和构建工具，`.cube` 不进入 Git 历史；完整发行 `.tgz` 则包含
-实际 LUT。构建时显式选择 `--download` 获取已锁定的维护者授权资源包，再检查
+实际 LUT。构建时显式选择 `--download` 获取已锁定的资源包，再检查
 各个 DJI 原始文件；`--official-only` 可改为直连官方来源。官方路径可能因云端
 网络返回 403，不能把本机缓存成功当作官网下载必定可用。也可用 `--source` 指向
 已有的 SHA 文件目录。每个原文件均检查 SHA-256、字节大小、格点；两个 ZIP 来源
@@ -127,5 +142,10 @@ or put generated files into the resource directory.
 处理可离线运行，主动调用 AI 时才需要相应模型服务。Python 和 FFmpeg 仍是明确的
 宿主环境依赖，不将这个跨平台插件包误称为自带所有运行时的桌面应用。
 
-维护者已确认这些 LUT 可随本项目公开安装包分发，原资源不属于项目 MIT 授权。
-出处和分发边界见 NOTICE。所有构建资料与清单均随包提供，下载缓存不随包提供。
+随包 LUT 来自 DJI 官方下载，出处见 SOURCES。所有构建资料与清单均随包提供，
+下载缓存不随包提供。
+
+资源包本身由 `scripts/package-resources.py --output /tmp/dsh-video-studio-dji-restoration-luts-v2.tar.gz`
+构建：先检查每个 LUT，再以固定顺序、时间戳和文件权限打包来源说明、目录清单及
+原始文件；输出的散列与字节大小写入 manifest，随后构建插件安装包。用户直接
+下载完整插件 `.tgz` 时，无需执行这个步骤。

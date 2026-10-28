@@ -7,7 +7,6 @@
     "library_sha256": "87b1ff5b062273fa76832f29d94f41b59020ae597f571bc087b16cc3b12eae48"
   },
   "scope": "Exact supported 3D Log-to-Rec.709 restoration and compatible size variants; no creative/HDR/1D LUTs",
-  "redistribution": "Maintainer-confirmed authorization for this project distribution; DJI materials, not MIT; see assets/NOTICE.md",
   "payloads": [
     {
       "file": "sha256-04757dd8dd669d60a2d58ea1834f185616ca9952922c168fe69dba29bb2be1b1.cube",
@@ -195,11 +194,10 @@
     }
   ],
   "distribution": {
-    "url": "https://github.com/PengJunchen/dsh-video-studio/releases/download/lut-resources-v1/dsh-video-studio-dji-restoration-luts-v1.tar.gz",
-    "sha256": "9edab28c5c8759bbcd81590b24465804664fee91fad02372132bbc565276076b",
-    "bytes": 11066022,
+    "url": "https://github.com/PengJunchen/dsh-video-studio/releases/download/lut-resources-v2/dsh-video-studio-dji-restoration-luts-v2.tar.gz",
+    "sha256": "e96896515af3a62bde881e3a305999d43ad49b5c7e9cb43e1536ea92c65a6344",
+    "bytes": 10890827,
     "format": "tar.gz",
-    "member_prefix": "luts/",
-    "permission": "Maintainer-confirmed authorization for published packages; DJI payloads are not MIT"
+    "member_prefix": "luts/"
   }
 }

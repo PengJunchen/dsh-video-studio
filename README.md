@@ -110,11 +110,11 @@ For a separate, custom catalog, override the defaults with:
       lut_root: /absolute/path/to/video-luts
 ```
 
-Obtain an authorized **3D CUBE → Rec.709** LUT for the exact camera and Log
+Obtain a **3D CUBE → Rec.709** LUT for the exact camera and Log
 profile. From a source checkout, register it with:
 
 ```sh
-npm run catalog -- --file /path/to/authorized-vivid.cube \
+npm run catalog -- --file /path/to/vivid.cube \
   --camera pocket4p --profile dlog2 --look vivid \
   --directory /path/to/video-luts
 ```
@@ -189,7 +189,7 @@ npm run build
 npm pack ./dist --ignore-scripts
 ```
 
-Resource preparation downloads the authorized maintainer resource archive,
+The bundled LUTs come from DJI's official downloads. Resource preparation downloads the pinned resource archive,
 verifies its locked SHA-256 and every original LUT's hash/size. Original DJI
 HTTPS sources and ZIP members remain in the manifest; use
 `--download --official-only` to fetch those directly. For an offline build,
@@ -201,7 +201,7 @@ and exact resources into `dist/`. It uses Node's standard library; no adjacent
 Harness/lut-app checkout or frontend compiler is required. The client resolves
 React from Harness. The resulting package runs without downloading LUTs at runtime.
 See [the full resource build recipe](assets/README.md) for origin, counts,
-licensing, prerequisites and release construction.
+prerequisites and release construction.
 
 A standalone local UI is also available without Harness AI integration:
 
@@ -228,5 +228,5 @@ assets/                                Locked resource manifests and prepared LU
 
 Original project source: **MIT**, copyright Peng Junchen.
 See [third-party notices](THIRD_PARTY_NOTICES.md) for external dependencies
-and camera LUT terms. This is an independent community plugin, not an official
+and resource sources. This is an independent community plugin, not an official
 DeepSeek, DJI or CapCut product.
