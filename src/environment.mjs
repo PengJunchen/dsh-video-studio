@@ -32,6 +32,7 @@ export function createEnvironmentManager({ root, dataDir, python, visionPython }
     const manifest = await lock();
     if (!/^[a-zA-Z0-9._-]+$/.test(manifest.id)) throw new Error('运行环境清单无效。');
     const candidates = [join(home, manifest.id, platform), join(root, 'runtime', platform)];
+    const packaged = await readJSON(join(root, 'runtime/bundled.json'), null);
     let directory, info;
     if (!python) for (const candidate of candidates) {
       const found = await readJSON(join(candidate, 'runtime.json'), null);
@@ -44,17 +45,22 @@ export function createEnvironmentManager({ root, dataDir, python, visionPython }
     const env = { ...process.env, PYTHONDONTWRITEBYTECODE: '1' };
     const prefixes = managed ? [join(directory, 'bin'), join(directory, pythonBin)]
       : process.platform === 'darwin' ? ['/opt/homebrew/bin', '/usr/local/bin'] : [];
-    env.PATH = [...prefixes, env.PATH || ''].join(delimiter);
+    env.PATH = managed ? prefixes.join(delimiter) : [...prefixes, env.PATH || ''].join(delimiter);
     if (managed) {
       delete env.PYTHONHOME; delete env.PYTHONPATH;
       env.PYTHONNOUSERSITE = '1';
     }
     return { python: executable, visionPython: visionPython || (managed ? executable : undefined), env, info,
-      source: python ? 'configured' : directory === candidates[0] ? 'managed' : managed ? 'bundled' : 'system', directory };
+      source: python ? 'configured' : directory === candidates[0] ? 'managed' : managed ? 'bundled' : 'system', directory,
+      mismatch: packaged?.platform && packaged.platform !== platform ? `安装包为 ${packaged.platform}，当前 Harness Host 为 ${platform}，请选择匹配的完整安装包。` : null };
   }
 
   async function inspect(context) {
     const { python: executable, env } = context;
+    if (context.mismatch) return { ready: false, visionReady: false,
+      items: [{ id: 'platform', label: '安装包平台', ready: false, message: context.mismatch }] };
+    const ffmpeg = context.directory ? join(context.directory, 'bin', process.platform === 'win32' ? 'ffmpeg.exe' : 'ffmpeg') : 'ffmpeg';
+    const ffprobe = context.directory ? join(context.directory, 'bin', process.platform === 'win32' ? 'ffprobe.exe' : 'ffprobe') : 'ffprobe';
     const items = [];
     async function item(id, label, run) {
       try { const version = await run(); items.push({ id, label, ready: true, version }); }
@@ -67,8 +73,8 @@ export function createEnvironmentManager({ root, dataDir, python, visionPython }
       }),
       item('ffmpeg', 'FFmpeg / 10-bit HEVC', async () => {
         const [version, filters, encoders, hevc] = await Promise.all([
-          command('ffmpeg', ['-version'], env), command('ffmpeg', ['-hide_banner', '-filters'], env),
-          command('ffmpeg', ['-hide_banner', '-encoders'], env), command('ffmpeg', ['-hide_banner', '-h', 'encoder=libx265'], env),
+          command(ffmpeg, ['-version'], env), command(ffmpeg, ['-hide_banner', '-filters'], env),
+          command(ffmpeg, ['-hide_banner', '-encoders'], env), command(ffmpeg, ['-hide_banner', '-h', 'encoder=libx265'], env),
         ]);
         const match = version.match(/ffmpeg version (?:n)?(\d+)([^\s]*)/);
         if (!match || Number(match[1]) < 8) throw new Error('需要 FFmpeg 8 或更新版本。');
@@ -78,7 +84,7 @@ export function createEnvironmentManager({ root, dataDir, python, visionPython }
         return match[1] + match[2];
       }),
       item('ffprobe', 'ffprobe', async () => {
-        const text = await command('ffprobe', ['-version'], env);
+        const text = await command(ffprobe, ['-version'], env);
         const match = text.match(/ffprobe version (?:n)?(\d+)([^\s]*)/);
         if (!match || Number(match[1]) < 8) throw new Error('需要 ffprobe 8 或更新版本。');
         return match[1] + match[2];
@@ -145,7 +151,7 @@ export function createEnvironmentManager({ root, dataDir, python, visionPython }
         if (info?.id !== manifest.id || info.platform !== platform || info.schema !== 1) throw new Error('环境包与当前插件不匹配。');
         installation = { state: 'checking', message: '正在检查编解码与人物处理能力…' };
         const temporary = { python: join(payload, pythonRelative), env: { ...process.env,
-          PATH: [join(payload, 'bin'), join(payload, pythonBin), process.env.PATH || ''].join(delimiter),
+          PATH: [join(payload, 'bin'), join(payload, pythonBin)].join(delimiter),
           PYTHONNOUSERSITE: '1', PYTHONDONTWRITEBYTECODE: '1' } };
         delete temporary.env.PYTHONHOME; delete temporary.env.PYTHONPATH;
         const result = await inspect(temporary);

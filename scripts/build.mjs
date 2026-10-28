@@ -1,4 +1,4 @@
-import { cp, mkdir, readFile, rm, stat } from 'node:fs/promises';
+import { cp, mkdir, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { requireReleaseAssets } from '../src/resources.mjs';
@@ -21,7 +21,7 @@ if (bundledPlatform) {
   const lock = JSON.parse(await readFile(join(root, 'runtime/manifest.json'), 'utf8'));
   if (runtime.id !== lock.id || runtime.platform !== bundledPlatform) throw new Error('Missing or mismatched platform runtime');
 }
-await rm(output, { recursive: true, force: true });
+await rm(output, { recursive: true, force: true, maxRetries: 8, retryDelay: 200 });
 await mkdir(output, { recursive: true });
 for (const entry of entries) {
   const source = join(root, entry);
@@ -35,4 +35,5 @@ for (const entry of entries) {
       || /^(darwin|linux|win32)-(arm64|x64)$/.test(part) && part !== bundledPlatform),
   });
 }
+if (bundledPlatform) await writeFile(join(output, 'runtime/bundled.json'), JSON.stringify({ platform: bundledPlatform }) + '\n');
 process.stdout.write(`${manifest.name}@${manifest.version}: ${output}; ${resources.payloads} LUTs, ${resources.mappings} exact mappings\n`);
