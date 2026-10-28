@@ -1,5 +1,5 @@
 import { cp, mkdir, readFile, rm, stat, writeFile } from 'node:fs/promises';
-import { dirname, join, resolve } from 'node:path';
+import { dirname, join, resolve, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { requireReleaseAssets } from '../src/resources.mjs';
 
@@ -30,9 +30,14 @@ for (const entry of entries) {
     recursive: true,
     // npm omits symlinks; materialize Python aliases and shared-library links.
     dereference: true,
-    filter: path => !path.split(/[\\/]/).some(part =>
-      part === '__pycache__' || part.startsWith('.') && !['.dylibs', '.libs'].includes(part) || /\.py[cod]$/.test(part)
-      || /^(darwin|linux|win32)-(arm64|x64)$/.test(part) && part !== bundledPlatform),
+    filter: path => {
+      const parts = relative(root, path).split(/[\\/]/);
+      const payload = parts[0] === 'runtime' && parts[1] === bundledPlatform;
+      // Runtime wheels need hidden DLL metadata and Windows .pyd extensions.
+      return !parts.some(part => part === '__pycache__' || part === '.DS_Store' || /\.py[co]$/.test(part)
+        || part.startsWith('.') && !payload
+        || /^(darwin|linux|win32)-(arm64|x64)$/.test(part) && part !== bundledPlatform);
+    },
   });
 }
 if (bundledPlatform) await writeFile(join(output, 'runtime/bundled.json'), JSON.stringify({ platform: bundledPlatform }) + '\n');

@@ -22,6 +22,7 @@ models/
 assets/.downloads/
 runtime/.downloads/
 runtime/.build/
+runtime/.prepared/
 runtime/darwin-*/
 runtime/linux-*/
 runtime/win32-*/

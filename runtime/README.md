@@ -17,8 +17,8 @@ covered by these packages.
 
 ## Runtime selection and first launch
 
-The plugin checks Python 3.10+, FFmpeg/ffprobe 8+, LUT/bilateral/blend/maskedmerge/
-zscale filters, x264 and 10-bit x265 encoding, and NumPy/OpenCV imports. A
+The plugin checks Python 3.10+, FFmpeg/ffprobe 8+, LUT/bilateral/blend/maskedmerge
+filters, PNG, x264 and 10-bit x265 encoding, and NumPy/OpenCV imports. A
 compact inline status appears on first launch. It can be reopened with the
 sidebar's **运行环境** button.
 
@@ -78,6 +78,8 @@ FFmpeg/x264/x265/zimg/zlib source archives and build script for macOS/Linux; ups
 Windows build sources are recorded in its input manifest. Original upstream
 Python and wheel notices stay in the runtime tree; FFmpeg/component notices
 are in `licenses/`. The plugin's original source remains MIT.
+Python component notices from the pinned upstream release also accompany every
+plugin package in `runtime/notices/python/`.
 
 ## Build the full installation package
 

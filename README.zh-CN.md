@@ -30,10 +30,10 @@ Desktop 提供系统文件夹选择器，Web 需明确配置素材目录。
 
 | 完整安装包 | 系统要求 |
 | --- | --- |
-| `darwin-arm64` | macOS 13+，Apple Silicon |
-| `darwin-x64` | macOS 13+，Intel |
-| `win32-x64` | Windows 10 22H2+，x64 |
-| `linux-x64` | Ubuntu 22.04+／glibc 2.35+，x86-64 |
+| [darwin-arm64](https://github.com/PengJunchen/dsh-video-studio/releases/download/v0.1.0-beta.3/dsh-video-studio-0.1.0-beta.3-darwin-arm64.tgz) | macOS 13+，Apple Silicon |
+| [darwin-x64](https://github.com/PengJunchen/dsh-video-studio/releases/download/v0.1.0-beta.3/dsh-video-studio-0.1.0-beta.3-darwin-x64.tgz) | macOS 13+，Intel |
+| [win32-x64](https://github.com/PengJunchen/dsh-video-studio/releases/download/v0.1.0-beta.3/dsh-video-studio-0.1.0-beta.3-win32-x64.tgz) | Windows 10 22H2+，x64 |
+| [linux-x64](https://github.com/PengJunchen/dsh-video-studio/releases/download/v0.1.0-beta.3/dsh-video-studio-0.1.0-beta.3-linux-x64.tgz) | Ubuntu 22.04+／glibc 2.35+，x86-64 |
 
 按 Harness Host 所在机器及其 Node 架构选择安装包。轻量通用包只含 LUT，可在
 首次启动的“运行环境”区域点击“配置独立环境”，也可使用自己准备的 Python 3.10+

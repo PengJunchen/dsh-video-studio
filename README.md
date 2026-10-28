@@ -33,10 +33,10 @@ Customers do not need separate installations of these components.
 
 | Package suffix | Host requirement |
 | --- | --- |
-| `darwin-arm64` | macOS 13+, Apple Silicon |
-| `darwin-x64` | macOS 13+, Intel |
-| `win32-x64` | Windows 10 22H2+, x64 |
-| `linux-x64` | Ubuntu 22.04+ / glibc 2.35+, x86-64 |
+| [darwin-arm64](https://github.com/PengJunchen/dsh-video-studio/releases/download/v0.1.0-beta.3/dsh-video-studio-0.1.0-beta.3-darwin-arm64.tgz) | macOS 13+, Apple Silicon |
+| [darwin-x64](https://github.com/PengJunchen/dsh-video-studio/releases/download/v0.1.0-beta.3/dsh-video-studio-0.1.0-beta.3-darwin-x64.tgz) | macOS 13+, Intel |
+| [win32-x64](https://github.com/PengJunchen/dsh-video-studio/releases/download/v0.1.0-beta.3/dsh-video-studio-0.1.0-beta.3-win32-x64.tgz) | Windows 10 22H2+, x64 |
+| [linux-x64](https://github.com/PengJunchen/dsh-video-studio/releases/download/v0.1.0-beta.3/dsh-video-studio-0.1.0-beta.3-linux-x64.tgz) | Ubuntu 22.04+ / glibc 2.35+, x86-64 |
 
 Choose the architecture of the Harness Host and its Node runtime. Desktop has
 a native folder picker; Web needs an explicit source directory grant. The
