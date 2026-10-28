@@ -19,3 +19,4 @@ models/
 *.cube
 *.pt
 *.safetensors
+assets/.downloads/

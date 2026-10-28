@@ -10,6 +10,7 @@ import { workerRequest, workerResult } from './worker-protocol.mjs';
 import { normalizeToneSegments } from './tone-plan.mjs';
 import { adviceSystem, AI_GROUPS, adviceFacts, adviceSamplePlan, parseAdvice } from './ai-advice.mjs';
 import { exportDirectoryIdentity, validateExportDirectory, exportFileIdentity, exportNameFor, publishExport } from './export-files.mjs';
+import { packagedAssets } from './resources.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const features = ['lut-batch', 'tone', 'skin', 'local-color', 'finish'];
@@ -34,7 +35,9 @@ export async function createMediaRuntime(config = {}) {
   const allowedRoots = await Promise.all((config.allowedRoots ?? [process.cwd()]).map(p => realpath(resolve(p))));
   const python = config.python ?? process.env.HVP_PYTHON ?? 'python3';
   const workerPath = resolve(config.workerPath ?? join(root, 'worker/media_worker.py'));
-  const workerConfig = { ...config.workerConfig, sourceCacheDir: join(dataDir, 'source-cache') };
+  const workerConfig = { ...config.workerConfig,
+    assets: await packagedAssets(root, config.workerConfig?.assets),
+    sourceCacheDir: join(dataDir, 'source-cache') };
   let catalogContentHash;
   async function refreshCatalogIdentity() {
     const paths = [workerConfig.assets?.catalog_path, workerConfig.assets?.library_path].filter(Boolean);

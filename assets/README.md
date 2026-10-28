@@ -1,0 +1,115 @@
+# Release resources / 发行资源构建
+
+## What the complete package contains
+
+The prepared `.tgz` includes the JavaScript/Python processing sources, Studio
+client, **18 original DJI 3D CUBE files** (37,449,680 bytes before compression),
+44 exact automatic camera/profile/look mappings, and a library of 33 source
+records. Different source records can share the same payload: these counts
+describe different things. Compatible size variants include Pocket 4P D-Log2
+Standard/Vivid at 33³ and 65³; the default preference remains Vivid / Size 65
+when that exact camera/profile combination provides it.
+
+There are no creative-look, HDR-output, Linear-to-Log or 1D LUT payloads in
+this release subset. Supported mappings are the explicit rows in
+[`catalog.json`](catalog.json); the plugin never infers compatibility from a
+shared hash or substitutes another camera/profile.
+
+The source repository tracks manifests, not `.cube` files. GitHub's generated
+source archives therefore require preparation; the attached release `.tgz`
+is the complete installation package. It is built with the exact same commands
+in the repository's `Release` workflow.
+
+## Locked inputs
+
+- [`catalog.json`](catalog.json): version-2 automatic mappings.
+- [`library.json`](library.json): selected schema-1 source records and size variants.
+- [`manifest.json`](manifest.json): one row per unique payload, with exact byte
+  size, SHA-256, 3D grid, original official page and download URL. ZIP resources
+  also pin the container SHA-256 and exact member name.
+- [`NOTICE.md`](NOTICE.md): DJI materials and the maintainer-confirmed
+  distribution scope. MIT applies to original plugin code, not these LUTs.
+
+The manifest pins its catalog source to a specific `lut-app` Git commit.
+Builds do not read a sibling checkout. Values are copied byte-for-byte, not
+regenerated, resampled, gamma-adjusted or replaced with a similar LUT.
+
+## Prerequisites and external components
+
+| Component | In the `.tgz`? | Preparation / runtime requirement |
+| --- | --- | --- |
+| Node/Cordis/React | Host supplies them | Install DeepSeek Harness; Node 22.19+ for local builds. The client uses the Host's React. |
+| Python | No | Python 3.10+ on the Host. It prepares resources and runs the worker. |
+| FFmpeg / ffprobe | No | Install 8+ on the Host's PATH with libx264/libx265 and required LUT/bilateral/blend filters. These platform-specific executables have separate licenses. |
+| DJI restoration LUTs | **Yes** | Prepared from locked local copies or official downloads before packaging. |
+| NumPy / OpenCV | No, optional | `python -m pip install -r requirements-vision.txt` in a chosen environment; set `assets.vision_python`. Face-guided skin treatment needs them. |
+| Model weights | No | The implemented baseline needs no neural model weights. |
+
+This is a Harness plugin package, not a platform-specific all-in-one application.
+For example, macOS users can install Python/FFmpeg through their normal package
+manager (`brew install python ffmpeg`). Windows/Linux users should install their
+platform's Python and an FFmpeg build with the required codecs/filters. The
+plugin does not silently fetch or run external executables during installation.
+
+## Online build
+
+```sh
+git clone https://github.com/PengJunchen/dsh-video-studio.git
+cd dsh-video-studio
+npm run assets:prepare -- --download
+npm run build
+npm pack ./dist --ignore-scripts
+```
+
+`--download` explicitly permits requests to the locked DJI HTTPS sources.
+Archive bytes and extracted member bytes are checked independently. Already
+valid payloads are reused; incomplete downloads are never published as LUTs.
+The downloader honors standard proxy environment variables if the local network
+requires them. Download caches live in ignored `assets/.downloads/`; they are
+excluded from the package and may be removed after a successful build.
+
+`npm run build` checks every required file's hash, size and declared grid,
+and checks that all catalog/library references resolve. It fails if any LUT
+is missing or altered. It then copies sources, manifests, notices and the
+prepared `assets/luts/` into `dist/`. `npm pack ./dist` uses the package file
+allowlist to produce `dsh-video-studio-<version>.tgz`.
+
+## Offline build from prepared files
+
+```sh
+npm run assets:prepare -- --source /absolute/path/to/sha-named-luts
+npm run build
+npm pack ./dist --ignore-scripts
+```
+
+Only the 18 locked SHA-named files are read. No network is used without
+`--download`. For the same original source bytes, LUT payloads are reproducible;
+this is not a claim that video encoders or npm's compressed archives produce
+identical bytes across operating systems/tool versions.
+
+## Automatic discovery after installation
+
+The runtime uses `<installed-package>/assets/catalog.json`, `library.json`
+and `luts/`. No absolute developer paths are embedded. Explicit user-provided
+`catalog_path` / `lut_root` settings take precedence. A separate `dataDir`
+holds drafts and jobs, so upgrading the plugin does not overwrite user media
+or put generated files into the resource directory.
+
+## 中文摘要
+
+完整发行包包含 18 个 DJI 原始 3D CUBE 文件、44 条精确自动映射及 33 条来源记录。
+清单由同一维护者的 lut-app 目录固定到具体提交，只选当前视频还原需要的部分，
+不把所有创意／HDR／1D 资源一起塞入插件。多个来源可共用相同字节，不能把
+来源数、机型映射数和实际文件数混为一谈。
+
+源码仓库保存清单和构建工具，`.cube` 不进入 Git 历史；完整发行 `.tgz` 则包含
+实际 LUT。构建时显式选择 `--download` 获取官方锁定文件，或用 `--source` 指向
+已有的 SHA 文件目录。每个原文件均检查 SHA-256、字节大小、格点；两个 ZIP 来源
+还检查压缩包散列及精确成员。任一资源缺失或不符，构建失败，不发布空壳包。
+
+安装成品后，插件自动寻找包内资源，用户无需手工找 LUT 或配置路径；日常视频
+处理可离线运行，主动调用 AI 时才需要相应模型服务。Python 和 FFmpeg 仍是明确的
+宿主环境依赖，不将这个跨平台插件包误称为自带所有运行时的桌面应用。
+
+维护者已确认这些 LUT 可随本项目公开安装包分发，原资源不属于项目 MIT 授权。
+出处和分发边界见 NOTICE。所有构建资料与清单均随包提供，下载缓存不随包提供。

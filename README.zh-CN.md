@@ -29,32 +29,30 @@
 - Python **3.10+**，Host 的 `PATH` 中有 **FFmpeg／ffprobe 8+**，包含
   `libx264`、`libx265` 以及常规 LUT、bilateral、blend 滤镜。
 - 可选 NumPy／OpenCV：肤色处理需要；其它调整不依赖它们，NumPy 可加速统计。
-- Log 还原需要自行提供有权使用的 LUT。**本仓不含第三方 LUT、模型权重、
-  FFmpeg 二进制或测试视频，也不会自动下载它们。**
+- 正式构建的 `.tgz` 安装包包含 **18 个锁定字节的 DJI LUT**、44 条精确映射，
+  以及对应的 33／65 尺寸选择。插件自动定位资源，不需用户寻找 LUT 或填写路径。
+  Python、FFmpeg 二进制、模型权重和测试视频不随该跨平台插件包提供。
 
 主要开发环境为 macOS Desktop。Linux／Windows 的能力取决于宿主与编解码器，
 当前不保证广泛的平台或机型兼容性。
 
 ## 安装
 
-在 Harness 插件安装界面输入 GitHub 包地址：
+从 [GitHub Releases](https://github.com/PengJunchen/dsh-video-studio/releases)
+下载完整 `.tgz`，在 Harness 插件安装界面选择该文件。GitHub 自动生成的源码
+ZIP／tarball 不包含 LUT 载荷，不能当作完整安装包。
+
+也可直接安装发行包地址：
 
 ```text
-github:PengJunchen/dsh-video-studio#v0.1.0-beta.1
+dsh plugin --profile desktop add 'https://github.com/PengJunchen/dsh-video-studio/releases/download/v0.1.0-beta.2/dsh-video-studio-0.1.0-beta.2.tgz'
 ```
 
-也可使用 CLI；请选择自己实际使用的 profile：
+使用已下载文件时，请选择自己实际使用的 profile：
 
 ```sh
-dsh plugin --profile desktop add 'github:PengJunchen/dsh-video-studio#v0.1.0-beta.1'
+dsh plugin --profile desktop add /absolute/path/to/dsh-video-studio-0.1.0-beta.2.tgz
 # 使用 Web Host 时，将 desktop 改为 web。
-```
-
-[GitHub Releases](https://github.com/PengJunchen/dsh-video-studio/releases)
-另提供可直接安装的 `.tgz`：
-
-```sh
-dsh plugin --profile desktop add /absolute/path/to/dsh-video-studio-0.1.0-beta.1.tgz
 ```
 
 当前未发布到 npm，请使用 GitHub 地址或安装包。安装后在合适时重启 Harness，
@@ -72,11 +70,9 @@ dsh plugin --profile desktop add /absolute/path/to/dsh-video-studio-0.1.0-beta.1
     allowedRoots:
       - /absolute/path/to/videos
     python: python3
-    assets:
-      catalog_path: /absolute/path/to/video-luts/catalog.json
-      lut_root: /absolute/path/to/video-luts
-      # 可选：已安装 NumPy／OpenCV 的 Python
-      # vision_python: /absolute/path/to/venv/bin/python
+    # 可选：已安装 NumPy／OpenCV 的 Python
+    # assets:
+    #   vision_python: /absolute/path/to/venv/bin/python
 ```
 
 Web 手动输入路径扫描时需要 `allowedRoots`。Desktop 文件夹选择器为用户明确
@@ -88,6 +84,20 @@ Web 手动输入路径扫描时需要 `allowedRoots`。Desktop 文件夹选择�
 已完成导出记录。
 
 ### 注册自有 LUT
+
+随包资源覆盖 `assets/catalog.json` 的精确映射，有对应资源时优先 Vivid／Size 65；
+部分相机只有 Size 33 或普通风格。D-Log、D-Log M、D-Log2 不混用。
+清单与构建方法见[资源构建说明](assets/README.md)。
+
+只有需要使用自己的独立目录时，才覆盖随包默认资源：
+
+```yaml
+- id: hvp-runtime
+  config:
+    assets:
+      catalog_path: /absolute/path/to/video-luts/catalog.json
+      lut_root: /absolute/path/to/video-luts
+```
 
 请取得准确对应相机和 Log 格式、有权使用的 **3D CUBE → Rec.709** 还原 LUT。
 在源码目录中运行：
@@ -156,12 +166,19 @@ python3 -m venv /path/to/video-vision
 ```sh
 git clone https://github.com/PengJunchen/dsh-video-studio.git
 cd dsh-video-studio
+npm run assets:prepare -- --download
 npm run build
 npm pack ./dist --ignore-scripts
 ```
 
-构建只使用 Node 标准库，将必要源码整理到 `dist/`。不需要相邻的 Harness
-源码工程、前端编译器或安装脚本。客户端从 Harness 的模块加载器获取 React。
+资源准备明确从清单锁定的 DJI 官方 HTTPS 地址获取文件，检查 SHA-256 和字节
+大小；ZIP 资源只取指定成员。离线构建将 `--download` 换成
+`--source /path/to/luts`，目录中需有清单指定的 SHA 文件名。
+
+构建缺少 LUT、散列不符或尺寸不符时直接失败，随后才将源码和完整资源整理到
+`dist/`。构建使用 Node 标准库，不依赖相邻的 Harness／lut-app 工程或前端编译器。
+客户端从 Harness 的模块加载器获取 React。安装成品后，日常运行不下载 LUT。
+来源、数量、许可、环境依赖和完整打包步骤见[资源构建说明](assets/README.md)。
 
 也可独立启动本机界面，此模式不集成 Harness AI：
 
@@ -181,6 +198,7 @@ src/                                   任务、授权、存储与 HTTP
 web/                                   工作台和实时预览
 worker/                                Python 视频处理管线
 scripts/                               构建与 LUT 导入
+assets/                                锁定资源清单及构建时准备的 LUT
 ```
 
 ## 协议

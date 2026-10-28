@@ -34,8 +34,10 @@ statistics provide optional suggestions; they do not determine creative intent.
   `libx264`, `libx265` and the standard LUT, bilateral and blend filters.
 - Optional: NumPy and OpenCV for face-guided skin treatment. Other adjustments
   work without these packages; NumPy can also accelerate local statistics.
-- Authorized camera LUTs for Log restoration. **LUT files, model weights,
-  FFmpeg binaries and sample videos are not included.**
+- Release `.tgz` packages include **18 locked DJI LUT payloads**, 44 exact
+  camera/profile/look mappings and compatible 33/65-size variants. The Studio
+  locates these resources automatically; no LUT path configuration is needed.
+  Model weights, FFmpeg binaries, Python and sample videos are not bundled.
 
 macOS Desktop is the primary development environment. Linux/Windows support
 depends on the installed Host and codecs; there is no broad platform or camera
@@ -43,24 +45,22 @@ compatibility guarantee.
 
 ## Install
 
-In Harness's plugin installer, use the GitHub package specification:
+Download the complete `.tgz` from
+[GitHub Releases](https://github.com/PengJunchen/dsh-video-studio/releases)
+and select it in Harness's plugin installer. This is the prepared distribution;
+GitHub's automatically generated source ZIP/tarball does not contain LUT payloads.
+
+The CLI can install the release URL directly:
 
 ```text
-github:PengJunchen/dsh-video-studio#v0.1.0-beta.1
+dsh plugin --profile desktop add 'https://github.com/PengJunchen/dsh-video-studio/releases/download/v0.1.0-beta.2/dsh-video-studio-0.1.0-beta.2.tgz'
 ```
 
-Or use the CLI, selecting the profile you actually use:
+Or install a downloaded package, selecting the profile you actually use:
 
 ```sh
-dsh plugin --profile desktop add 'github:PengJunchen/dsh-video-studio#v0.1.0-beta.1'
+dsh plugin --profile desktop add /absolute/path/to/dsh-video-studio-0.1.0-beta.2.tgz
 # For a Web Host, use --profile web instead.
-```
-
-The [GitHub release](https://github.com/PengJunchen/dsh-video-studio/releases)
-also provides an installable `.tgz`:
-
-```sh
-dsh plugin --profile desktop add /absolute/path/to/dsh-video-studio-0.1.0-beta.1.tgz
 ```
 
 The bare npm name is not a published installation channel. After installation,
@@ -79,11 +79,9 @@ filesystem, including when the browser is on another machine.
     allowedRoots:
       - /absolute/path/to/videos
     python: python3
-    assets:
-      catalog_path: /absolute/path/to/video-luts/catalog.json
-      lut_root: /absolute/path/to/video-luts
-      # Optional Python containing NumPy/OpenCV:
-      # vision_python: /absolute/path/to/venv/bin/python
+    # Optional Python containing NumPy/OpenCV:
+    # assets:
+    #   vision_python: /absolute/path/to/venv/bin/python
 ```
 
 `allowedRoots` is required for manual path scanning in Web. Desktop's folder
@@ -96,6 +94,21 @@ To relocate it, set `dataDir` on the same runtime row. Keep this directory
 across upgrades if you want to preserve drafts and completed export records.
 
 ### Bring your own LUTs
+
+The included resources cover the exact mappings in `assets/catalog.json`.
+Vivid / Size 65 is preferred where provided; some cameras only have a 33-size
+or Standard LUT. D-Log, D-Log M and D-Log2 are never substituted for one another.
+See [resource construction and inventory](assets/README.md).
+
+For a separate, custom catalog, override the defaults with:
+
+```yaml
+- id: hvp-runtime
+  config:
+    assets:
+      catalog_path: /absolute/path/to/video-luts/catalog.json
+      lut_root: /absolute/path/to/video-luts
+```
 
 Obtain an authorized **3D CUBE → Rec.709** LUT for the exact camera and Log
 profile. From a source checkout, register it with:
@@ -171,13 +184,22 @@ Tool names are `video_lut_batch`, `video_tone`, `video_skin`,
 ```sh
 git clone https://github.com/PengJunchen/dsh-video-studio.git
 cd dsh-video-studio
+npm run assets:prepare -- --download
 npm run build
 npm pack ./dist --ignore-scripts
 ```
 
-The build uses Node's standard library and copies the runtime sources into
-`dist/`. No Harness source checkout, frontend compiler or install script is
-required. The client resolves React from Harness's module loader.
+Resource preparation explicitly downloads locked files from DJI's original
+HTTPS sources, verifies SHA-256 / sizes, and extracts exact members of two ZIP
+sources. For an offline build, replace `--download` with `--source /path/to/luts`.
+The source directory must contain the SHA-named files in the manifest.
+
+The build refuses missing, modified or wrong-grid LUTs, then copies the runtime
+and exact resources into `dist/`. It uses Node's standard library; no adjacent
+Harness/lut-app checkout or frontend compiler is required. The client resolves
+React from Harness. The resulting package runs without downloading LUTs at runtime.
+See [the full resource build recipe](assets/README.md) for origin, counts,
+licensing, prerequisites and release construction.
 
 A standalone local UI is also available without Harness AI integration:
 
@@ -197,6 +219,7 @@ src/                                   Jobs, permissions, storage and HTTP
 web/                                   Studio interface and live preview
 worker/                                Python media-processing pipeline
 scripts/                               Build and LUT import
+assets/                                Locked resource manifests and prepared LUTs
 ```
 
 ## License
